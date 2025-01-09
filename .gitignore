@@ -1,0 +1,13 @@
+
+*.bak
+
+*-checkpoint.ipynb
+
+/Material
+/Output
+/Process
+/Source
+/Templete
+
+Zotero_Record/*/
+Zotero_Record/zotero.sqlite?*
