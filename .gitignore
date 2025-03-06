@@ -3,10 +3,9 @@
 
 *-checkpoint.ipynb
 
-/Material
-/Output*
-/Process
-/Templete
+Material/
+Output*/
+Templete/
 
 Zotero_Record/*/
 Zotero_Record/zotero.sqlite?*

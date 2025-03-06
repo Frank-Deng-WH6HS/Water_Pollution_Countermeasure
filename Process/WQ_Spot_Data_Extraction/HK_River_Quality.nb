@@ -1,0 +1,500 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     14774,        491]
+NotebookOptionsPosition[     12882,        423]
+NotebookOutlinePosition[     13354,        441]
+CellTagsIndexPosition[     13311,        438]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\:9999\:6e2f\:7279\:522b\:884c\:653f\:533a\:6cb3\:9053\:6c34\:8d28\:5b9e\
+\:6d4b\:6570\:636e\:63d0\:53d6", "Title"],
+
+Cell[CellGroupData[{
+
+Cell["1. \:6cb3\:9053\:6c34\:8d28\:76d1\:6d4b\:70b9\:4f4d\:5750\:6807\:4fe1\
+\:606f\:63d0\:53d6", "Section"],
+
+Cell[CellGroupData[{
+
+Cell["1.1. \:68c0\:7d22\:5e76\:89e3\:6790\:4ece\:6c34\:8d28\:62a5\:544a\:4e2d\
+\:6790\:51fa\:7684\:5750\:6807\:63cf\:8ff0\:6587\:4ef6", "Subsection"],
+
+Cell["\<\
+\:6570\:636e\:6765\:6e90\:4e8e\:9999\:6e2f\:7279\:522b\:884c\:653f\:533a\:73af\
+\:5883\:4fdd\:62a4\:7f72(Environmental Protection Department, www.epd.gov.hk)\
+\:53d1\:5e03\:7684\:6cb3\:6d41\:6c34\:8d28\:5e74\:62a5.\
+\>", "Text"],
+
+Cell["\<\
+\:5176\:4e2d: 2019\:5e74(\:542b)\:4ee5\:524d\:7684\:6c34\:8d28\:5e74\:62a5\
+\:4e2d\:4ec5\:663e\:793a\:76d1\:6d4b\:70b9\:4f4d\:5728\:7279\:533a\:7684\:5206\
+\:5e03\:5730\:56fe, \:672a\:63d0\:4f9b\:7cbe\:786e\:7684\:5730\:7406\:5750\
+\:6807\:4fe1\:606f; 2020\:5e74(\:542b)\:81f32023\:5e74(\:542b)\:7684\:6c34\
+\:8d28\:5e74\:62a5\:4e2d\:5305\:542b\:76d1\:6d4b\:70b9\:5728\:7279\:533a\:7684\
+\:5206\:5e03\:5730\:56fe\:548c\:8be6\:7ec6\:7684\:5750\:6807(\:5730\:7406\
+\:57fa\:51c6: WGS-84). \
+\>", "Text"],
+
+Cell["\<\
+\:6570\:636e\:5e74\:62a5\:4e3aPDF\:6587\:4ef6, \:4ece\:4e2d\:63d0\:53d6\:5305\
+\:542b\:76d1\:6d4b\:7ad9\:5750\:6807\:7684\:9875\:9762, \:5c06\:5176\:4e2d\
+\:7684\:76d1\:6d4b\:70b9\:5750\:6807\:6587\:672c\:590d\:5236\:7c98\:8d34\:81f3\
+\:53e6\:884c\:65b0\:5efa\:7684\:6587\:672c\:6587\:6863\:4e2d, \:5e76\:7f16\
+\:5199Mathematica\:7a0b\:5e8f\:5305\:5bf9\:5185\:5bb9\:8fdb\:884c\:89e3\:6790.\
+ \
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Get", "[", 
+   RowBox[{
+    RowBox[{"NotebookDirectory", "[", "]"}], "<>", "\"\<HKRWQ_coord.m\>\""}], 
+   "]"}], ";"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"waterQualMonSpot", "=", 
+  RowBox[{"FileNames", "[", 
+   RowBox[{
+    RowBox[{
+    "RegularExpression", "[", "\"\<Pg[0-9]+_riverreport20[0-9]{2}.txt\>\"", 
+     "]"}], ",", 
+    RowBox[{"NotebookDirectory", "[", "]"}]}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"E:\\\\CUGW_Master\\\\Geology_Hydrautics\\\\Water_Pollution_\
+Countermeasure\\\\Process\\\\WQ_Spot_Data_Extraction\\\\Pg42_riverreport2022.\
+txt\"\>", 
+   ",", "\<\"E:\\\\CUGW_Master\\\\Geology_Hydrautics\\\\Water_Pollution_\
+Countermeasure\\\\Process\\\\WQ_Spot_Data_Extraction\\\\Pg42_riverreport2023.\
+txt\"\>", 
+   ",", "\<\"E:\\\\CUGW_Master\\\\Geology_Hydrautics\\\\Water_Pollution_\
+Countermeasure\\\\Process\\\\WQ_Spot_Data_Extraction\\\\Pg45_riverreport2020.\
+txt\"\>", 
+   ",", "\<\"E:\\\\CUGW_Master\\\\Geology_Hydrautics\\\\Water_Pollution_\
+Countermeasure\\\\Process\\\\WQ_Spot_Data_Extraction\\\\Pg45_riverreport2021.\
+txt\"\>"}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"ck22", ",", "ck23", ",", "ck20", ",", "ck21"}], "}"}], "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{
+       RowBox[{"Sort", "[", 
+        RowBox[{"#", ",", 
+         RowBox[{
+          RowBox[{"OrderedQ", "[", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"#1", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], ",", 
+             RowBox[{"#2", "[", 
+              RowBox[{"[", "2", "]"}], "]"}]}], "}"}], "]"}], "&"}]}], "]"}], 
+       "&"}], "@*", "AquaticEnvironMonitoring`WaterPollutionSpotExtract"}], 
+     ",", "waterQualMonSpot"}], "]"}]}], ";"}]], "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1.2. \:5206\:6790\:6c34\:8d28\:76d1\:6d4b\:7ad9\:70b9\:7684\:8fc1\:79fb\
+\:7279\:5f81", "Subsection"],
+
+Cell["\<\
+\:786e\:4fdd\:4e0a\:8ff0\:4e0d\:540c\:5e74\:4efd\:7684\:70b9\:4f4d\:5750\:6807\
+\:6570\:636e\:4e2d\:6d89\:53ca\:7684\:70b9\:4f4d\:8bc6\:522b\:7801\:76f8\:540c\
+, \:4e14\:4e00\:4e00\:5bf9\:5e94: \
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ck20", "[", 
+   RowBox[{"[", 
+    RowBox[{"All", ",", 
+     RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "\[Equal]", 
+  RowBox[{"ck21", "[", 
+   RowBox[{"[", 
+    RowBox[{"All", ",", 
+     RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "\[Equal]", 
+  RowBox[{"ck22", "[", 
+   RowBox[{"[", 
+    RowBox[{"All", ",", 
+     RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "\[Equal]", 
+  RowBox[{"ck23", "[", 
+   RowBox[{"[", 
+    RowBox[{"All", ",", 
+     RowBox[{"1", ";;", "2"}]}], "]"}], "]"}]}]], "Input"],
+
+Cell[BoxData["True"], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ck23", "//", "Length"}]], "Input"],
+
+Cell[BoxData["82"], "Output"]
+}, Open  ]],
+
+Cell["\:5c06WGS-84\:5750\:6807\:6295\:5f71\:81f3UTM, \:5728\:76f4\:89d2\:5750\
+\:6807\:4e0b\:68c0\:6d4b\:662f\:5426\:6709\:70b9\:4f4d\:5728\:4efb\:610f\:8fde\
+\:7eed\:7684\:4e24\:5e74\:95f4\:53d1\:751f\:8fc7\:8fc1\:79fb", "Text"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"wgs2utm49", "//", "Clear"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"wgs2utm49", "[", "latlon_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{"GeoGridPosition", "[", 
+     RowBox[{
+      RowBox[{"GeoPosition", "@", "latlon"}], ",", "\"\<UTMZone49\>\""}], 
+     "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], ";"}]}], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"ck20UTM", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Join", "[", 
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ";;", "2"}], "]"}], "]"}], ",", 
+        RowBox[{"wgs2utm49", "@", 
+         RowBox[{"#", "[", 
+          RowBox[{"[", 
+           RowBox[{"3", ";;", "4"}], "]"}], "]"}]}]}], "]"}], "&"}], ",", 
+     "ck20"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ck21UTM", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Join", "[", 
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ";;", "2"}], "]"}], "]"}], ",", 
+        RowBox[{"wgs2utm49", "@", 
+         RowBox[{"#", "[", 
+          RowBox[{"[", 
+           RowBox[{"3", ";;", "4"}], "]"}], "]"}]}]}], "]"}], "&"}], ",", 
+     "ck21"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ck22UTM", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Join", "[", 
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ";;", "2"}], "]"}], "]"}], ",", 
+        RowBox[{"wgs2utm49", "@", 
+         RowBox[{"#", "[", 
+          RowBox[{"[", 
+           RowBox[{"3", ";;", "4"}], "]"}], "]"}]}]}], "]"}], "&"}], ",", 
+     "ck22"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ck23UTM", "=", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Join", "[", 
+       RowBox[{
+        RowBox[{"#", "[", 
+         RowBox[{"[", 
+          RowBox[{"1", ";;", "2"}], "]"}], "]"}], ",", 
+        RowBox[{"wgs2utm49", "@", 
+         RowBox[{"#", "[", 
+          RowBox[{"[", 
+           RowBox[{"3", ";;", "4"}], "]"}], "]"}]}]}], "]"}], "&"}], ",", 
+     "ck23"}], "]"}]}], ";"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ckTrkUTM", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Map", "[", 
+       RowBox[{
+        RowBox[{"Function", "[", 
+         RowBox[{"ls", ",", 
+          RowBox[{"Part", "[", 
+           RowBox[{"ls", ",", 
+            RowBox[{"3", ";;", "4"}]}], "]"}]}], "]"}], ",", 
+        RowBox[{"{", "##", "}"}]}], "]"}], "&"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"ck20UTM", ",", "ck21UTM", ",", "ck22UTM", ",", "ck23UTM"}], 
+      "}"}]}], "]"}]}], ";"}]], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ckMigratedIdx", "=", 
+  RowBox[{"Position", "[", 
+   RowBox[{
+    RowBox[{"Differences", "/@", "ckTrkUTM"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"___List", ",", 
+      RowBox[{
+       RowBox[{"Except", "[", 
+        RowBox[{"{", 
+         RowBox[{"0.", ",", "0."}], "}"}], "]"}], ".."}], ",", "___List"}], 
+     "}"}], ",", "1"}], "]"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", "3", "}"}], ",", 
+   RowBox[{"{", "19", "}"}], ",", 
+   RowBox[{"{", "44", "}"}]}], "}"}]], "Output"]
+}, Open  ]],
+
+Cell["\:4e00\:5171\:6709\:4e09\:4e2a\:70b9\:4f4d\:53d1\:751f\:8fc1\:79fb", \
+"Text"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ck23UTM", "[", 
+   RowBox[{"[", 
+    RowBox[{
+     RowBox[{"Join", "@@", "ckMigratedIdx"}], ",", 
+     RowBox[{"1", ";;", "2"}]}], "]"}], "]"}], "//", "TableForm"}]], "Input"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {"\<\"Ha Pak Nai Stream\"\>", "\<\"DB1\"\>"},
+    {"\<\"Kai Tak River\"\>", "\<\"KN1\"\>"},
+    {"\<\"Tung Chung River\"\>", "\<\"TC2\"\>"}
+   },
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}},
+   GridBoxSpacings->{"Columns" -> {
+       Offset[0.27999999999999997`], {
+        Offset[2.0999999999999996`]}, 
+       Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+       Offset[0.2], {
+        Offset[0.4]}, 
+       Offset[0.2]}, "RowsIndexed" -> {}}],
+  Function[BoxForm`e$, 
+   TableForm[BoxForm`e$]]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Part", "[", 
+   RowBox[{
+    RowBox[{"Differences", "/@", "ckTrkUTM"}], ",", 
+    RowBox[{"Join", "@@", "ckMigratedIdx"}]}], "]"}], "//", 
+  RowBox[{
+   RowBox[{"TableForm", "[", 
+    RowBox[{"#", ",", 
+     RowBox[{"TableDepth", "\[Rule]", "2"}]}], "]"}], "&"}]}]], "Input"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "184.69618501188233`"}], ",", "76.42760797962546`"}], 
+      "}"}]},
+    {
+     RowBox[{"{", 
+      RowBox[{"55.3954141298309`", ",", 
+       RowBox[{"-", "45.016645286697894`"}]}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}]},
+    {
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{"0.`", ",", "0.`"}], "}"}], 
+     RowBox[{"{", 
+      RowBox[{"235.90344188548625`", ",", 
+       RowBox[{"-", "491.1017161719501`"}]}], "}"}]}
+   },
+   GridBoxAlignment->{
+    "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+     "RowsIndexed" -> {}},
+   GridBoxSpacings->{"Columns" -> {
+       Offset[0.27999999999999997`], {
+        Offset[2.0999999999999996`]}, 
+       Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+       Offset[0.2], {
+        Offset[0.4]}, 
+       Offset[0.2]}, "RowsIndexed" -> {}}],
+  Function[BoxForm`e$, 
+   TableForm[BoxForm`e$, TableDepth -> 2]]]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+\:5168\:90e882\:4e2a\:6c34\:8d28\:76d1\:6d4b\:70b9\:4f4d\:4e2d, DB1, \
+TC2\:70b9\:4f4d\:5747\:57282022~2023\:5e74\:95f4, \
+KN1\:70b9\:4f4d\:57282020~2021\:5e74\:95f4\:53d1\:751f\:8fc1\:79fb. \
+\>", "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1.3. \:5bfc\:51fa\:76d1\:6d4b\:7ad9\:70b9\:5750\:6807", "Subsection"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"spotCoordSer", "=", 
+   RowBox[{
+    RowBox[{"MapThread", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Map", "[", 
+        RowBox[{
+         RowBox[{"Function", "[", 
+          RowBox[{"rec", ",", 
+           RowBox[{"Join", "[", 
+            RowBox[{"rec", ",", 
+             RowBox[{"{", "#2", "}"}]}], "]"}]}], "]"}], ",", "#1"}], "]"}], 
+       "&"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"ck20", ",", "ck21", ",", "ck22", ",", "ck23"}], "}"}], ",", 
+        RowBox[{"Range", "[", 
+         RowBox[{"2020", ",", "2023"}], "]"}]}], "}"}]}], "]"}], "//", 
+    RowBox[{
+     RowBox[{"Flatten", "[", 
+      RowBox[{"#", ",", "1"}], "]"}], "&"}]}]}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+     "\"\<river_qual_spot.csv\>\""}], ",", 
+    RowBox[{"Join", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<River\>\"", ",", "\"\<Spot\>\"", ",", "\"\<Lat\>\"", ",", 
+         "\"\<Lon\>\"", ",", "\"\<Year\>\""}], "}"}], "}"}], ",", 
+      "spotCoordSer"}], "]"}], ",", "\"\<CSV\>\""}], "]"}], ";"}]], "Input"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1600, 853},
+WindowMargins->{{-4, Automatic}, {Automatic, -4}},
+TrackCellChangeTimes->False,
+Magnification:>1.5 Inherited,
+FrontEndVersion->"10.0 for Microsoft Windows (64-bit) (July 1, 2014)",
+StyleDefinitions->FrontEnd`FileName[{"Report"}, "StandardReport.nb", 
+  CharacterEncoding -> "CP936"]
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 121, 1, 131, "Title"],
+Cell[CellGroupData[{
+Cell[726, 27, 108, 1, 96, "Section"],
+Cell[CellGroupData[{
+Cell[859, 32, 149, 1, 47, "Subsection"],
+Cell[1011, 35, 238, 4, 45, "Text"],
+Cell[1252, 41, 510, 8, 74, "Text"],
+Cell[1765, 51, 416, 7, 74, "Text"],
+Cell[2184, 60, 164, 5, 59, "Input"],
+Cell[CellGroupData[{
+Cell[2373, 69, 263, 7, 59, "Input"],
+Cell[2639, 78, 705, 13, 255, "Output"]
+}, Open  ]],
+Cell[3359, 94, 679, 20, 89, "Input"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4075, 119, 107, 1, 47, "Subsection"],
+Cell[4185, 122, 218, 4, 45, "Text"],
+Cell[CellGroupData[{
+Cell[4428, 130, 526, 17, 59, "Input"],
+Cell[4957, 149, 31, 0, 58, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5025, 154, 58, 1, 59, "Input"],
+Cell[5086, 157, 29, 0, 58, "Output"]
+}, Open  ]],
+Cell[5130, 160, 229, 2, 45, "Text"],
+Cell[5362, 164, 382, 11, 89, "Input"],
+Cell[5747, 177, 1821, 60, 147, "Input"],
+Cell[7571, 239, 531, 16, 59, "Input"],
+Cell[CellGroupData[{
+Cell[8127, 259, 374, 11, 59, "Input"],
+Cell[8504, 272, 157, 5, 58, "Output"]
+}, Open  ]],
+Cell[8676, 280, 84, 1, 45, "Text"],
+Cell[CellGroupData[{
+Cell[8785, 285, 210, 6, 59, "Input"],
+Cell[8998, 293, 647, 17, 124, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9682, 315, 310, 9, 59, "Input"],
+Cell[9995, 326, 1263, 39, 124, "Output"]
+}, Open  ]],
+Cell[11273, 368, 215, 4, 45, "Text"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11525, 377, 75, 0, 47, "Subsection"],
+Cell[11603, 379, 751, 23, 89, "Input"],
+Cell[12357, 404, 485, 14, 89, "Input"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
