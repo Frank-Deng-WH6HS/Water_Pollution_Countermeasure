@@ -1,7 +1,7 @@
 
 *.bak
 
-*-checkpoint.ipynb
+**/.ipynb_checkpoints/
 
 Material/
 Output*/
