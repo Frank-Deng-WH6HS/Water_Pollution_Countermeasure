@@ -38,10 +38,10 @@
 |`ArcGIS`发行版<br>`ArcGIS` release version|`ArcGIS Desktop 10.5`|
 |`ENVI`发行版<br>`ENVI` release version|`ENVI 5.3`|
 
-### 配置`idlpy`, `sklearn`集成环境 / Configure Integrated Environment of `idlpy` and `sklearn`
+### 配置`idlpy`, `sklearn`和`keras`集成环境 / Configure Integrated Environment of `idlpy`, `sklearn` and `keras`
 
-本项目通过`anaconda`环境管理器, 创建一个名为`IDL_Machine_Intelligence_x64`的子环境, 集成`idlpy`和`sklearn`以供s数据处理和机器学习使用, 主要依据如下: \
-This repository creates an environment named `IDL_Machine_Intelligence_x64` via `anaconda` environment manager, which intergrates `idlpy` and `sklearn` for data processing and machine learning, criteria are as follow: 
+本项目通过`anaconda`环境管理器, 创建一个名为`IDL_Machine_Intelligence_x64`的子环境, 集成`idlpy`, `sklearn`和`keras`以供数据处理和机器学习使用, 主要依据如下: \
+This repository creates an environment named `IDL_Machine_Intelligence_x64` via `anaconda` environment manager, which intergrates `idlpy`, `sklearn` and `keras` for data processing and machine learning, criteria are as follow: 
 
 * 遥感影像的覆盖范围内水体应当包含实测数据. \
     Waters covered by extent of RS images must contain *in-situ* monitoring data. 
@@ -103,8 +103,8 @@ set anacon=D:\Anaconda3
 conda clean -i
 ```
 
-2. 建立并进入新环境`arcpy_idlpy_x32`. \
-    Create and enter new environment `arcpy_idlpy_x32`. 
+2. 建立并进入新环境`IDL_Machine_Intelligence_x64`. \
+    Create and enter new environment `IDL_Machine_Intelligence_x64`. 
 
 ```bash
 conda create -n IDL_Machine_Intelligence_x64 python==2.7.12 pip==8.1.1 wheel==0.29.0 six==1.10.0 setuptools==27.2.0 cycler==0.10.0 pyparsing==2.1.4 -y
@@ -116,13 +116,14 @@ conda activate IDL_Machine_Intelligence_x64
 ```bash
 conda install numpy==1.11.1 scipy==0.18.1 matplotlib==1.5.3 python-dateutil==2.5.3 pytz==2016.6.1 pandas==0.18.1 -c conda-forge -y
 conda install scikit-learn==0.17.1 scikit-image==0.12.3 networkx==1.11 pillow==3.3.1 -c conda-forge -y
+conda install spectral==0.19 -c conda-forge -y
 ```
 
 4. 在新环境中配置与`ipython`有关的包. \
     Configure packages related to `ipython` in new environment. 
 
 ```bash
-conda install notebook==4.2.3 ipykernel==4.5.0 ipython_genutils==0.1.0 jinja2==2.8 jupyter_client==4.4.0 jupyter_core==4.2.0 nbconvert==4.2.0 nbformat==4.1.0 pyzmq==15.4.0 tornado==4.4.1 -c conda-forge -y
+conda install notebook==4.2.3 ipykernel==4.5.0 ipython_genutils==0.1.0 jinja2==2.8 jupyter_client==4.4.0 jupyter_core==4.2.0 nbconvert==4.2.0 nbformat==4.1.0 pygments==2.1.3 pyzmq==15.4.0 tornado==4.4.1 -c conda-forge -y
 ```
 
 5. 在新环境下建立`idlpy`的路径配置文件. \
@@ -134,7 +135,33 @@ echo %idl%\bin\bin.x86-64 >IDL8.5.pth
 echo %idl%\lib\bridges >>IDL8.5.pth
 ```
 
-6. 将新环境注册为`ipython`内核, 以便与`base`环境下的`Jupyter notebook`一同使用. \
+6. 在新环境下配置与天文计算有关的包. \
+    Configure pacages related to astometry and astromechanics. 
+    
+```bash
+pip install ephem==3.7.6 -i https://www.pypi.org/simple --force-reinstall
+```
+> [!TIPS]
+> 在遥感数据预处理流程中, 天文计算包`ephem`主要用于解析卫星轨道参数, 计算星下点轨迹, 卫星倾角, 以及观测地的太阳方位角, 高度角等工作. 
+
+7. 在新环境下配置深度学习程序包及其支持库. \
+    Configure deep-learning package and its supportive libraries. 
+
+```bash
+conda install h5py==2.6.0 hdf5==1.8.17 openssl -y
+pip install keras==1.0.7 theano==0.8.2 pyyaml==5.1.2 -i https://www.pypi.org/simple --force-reinstall
+```
+
+8. 在新环境下配置`keras`所需的其他辅助库, 包括C++编译器, 自动测试工具等. \
+    Configure other auxillary libraries for `keras`, including C++ compilers and automated testing tools. 
+    
+```bash
+conda install m2w64-toolchain==5.3.0 -c conda-forge -y
+conda install libpython==2.0 -c conda-forge -y
+pip install nose==1.3.7 nose_parameterized -i https://www.pypi.org/simple --force-reinstall
+```
+
+9. 将新环境注册为`ipython`内核, 以便与`base`环境下的`Jupyter notebook`一同使用. \
     Register new environment as an `ipython` kernel for use with `Jupyter notebook` in `base` environment. 
 
 ```bash
@@ -150,7 +177,7 @@ ipython kernelspec install-self
 > conda install backports.functools_lru_cache -y
 > ```
 
-7. 完成新环境配置. \
+10. 完成新环境配置. \
     Finish configuration of new environment. 
 
 ```bash
