@@ -1,4 +1,4 @@
-# Water_Pollution_Contermeasure
+﻿# Water_Pollution_Contermeasure
 
 ## 概述 / Overview
 
@@ -141,7 +141,7 @@ echo %idl%\lib\bridges >>IDL8.5.pth
 ```bash
 pip install ephem==3.7.6 -i https://www.pypi.org/simple --force-reinstall
 ```
-> [!TIPS]
+> [!TIP]
 > 在遥感数据预处理流程中, 天文计算包`ephem`主要用于解析卫星轨道参数, 计算星下点轨迹, 卫星倾角, 以及观测地的太阳方位角, 高度角等工作. 
 
 7. 在新环境下配置深度学习程序包及其支持库. \
