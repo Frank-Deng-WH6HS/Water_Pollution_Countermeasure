@@ -1,0 +1,19 @@
+TY  - JOUR
+AU  - Muther, Temoor
+AU  - Dahaghi, Amirmasoud Kalantari
+AU  - Syed, Fahad Iqbal
+AU  - Van Pham, Vuong
+PY  - 2023
+DA  - 2023/07/01
+TI  - Physical laws meet machine intelligence: current developments and future directions
+JO  - Artificial Intelligence Review
+SP  - 6947
+EP  - 7013
+VL  - 56
+IS  - 7
+AB  - The advent of technology including big data has allowed machine learning technology to strengthen its place in solving different science and engineering complex problems. Conventional deep machine learning algorithms work as a black box while dealing with various complex physics-driven problems. This problem can be reduced by integrating the physical laws with machine learning algorithms to ensure the developed models are complied with the physics and are potentially more explainable. This physics-informed machine learning (PIML) approach allows the integration of physical laws in the form of PDEs into the loss function of the neural network, hence, constraining the training of the complex problems based on both the physical, experimental, and mathematical boundaries. This, hence, allows the development of a more general predictive model for different science, engineering, and optimization tasks. Considering such advancements in the machine learning domain, this review presents the systematic progress in the development of integrating physics into the neural networks and recent applications in solving various forward and inverse problems in science and engineering. This paper can serve as a reference for the researchers, developers, and users to get all information they need before developing, implementing, and deploying AI models and smart systems that are equipped with the PIML methodology. It highlights the benefits and points out its limitations and recommendations for further development. The review also compares the traditional data-driven machine learning and PIML approach in dealing with the physics of complex problems. In general, the PIML has been found to provide consistent results with the exact solutions and physical nature of the system. However, similar to other AI system development, a more robust and complex AI algorithm requires more computational power which is also the case in PIML development and implementation. It should be noted that different terminologies such as physics-informed neural networks (PINN), science-informed neural networks, physics-inspired neural networks, and physics-constrained neural networks have been used in the literature that describes the very similar concept of integrating physical laws with machine intelligence. For consistency, we use the PIML term throughout this paper which covers all listed terminologies in this regard.
+SN  - 1573-7462
+UR  - https://doi.org/10.1007/s10462-022-10329-8
+DO  - 10.1007/s10462-022-10329-8
+ID  - Muther2023
+ER  - 
