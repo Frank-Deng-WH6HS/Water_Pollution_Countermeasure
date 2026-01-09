@@ -1,6 +1,10 @@
 /*
 !Python_Package/
+!IDL_Package/
 !Hong_Kong_Stream/
+Hong_Kong_Stream/**/*.dat
+Hong_Kong_Stream/Atm_Corr/*/
+!Hong_Kong_Stream/Atm_Corr/*/._template.txt
 Hong_Kong_Stream/WQ_Spot_Data_Extraction/*.pdf
 
 **/*.gdb/
