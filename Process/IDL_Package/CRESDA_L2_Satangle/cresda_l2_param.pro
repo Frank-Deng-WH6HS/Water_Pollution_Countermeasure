@@ -49,34 +49,3 @@ Function PARSE_SPATIAL_DATUM, raster
   }
   Return, datum
 End
-
-; 根据影像成像时间和空间基准, 计算satangle采样点的太阳方位角和天顶角
-; Calculate sun azimuth and zenith angle of each pixel according to 
-;   acquisition time and spatial references of imagery. 
-Function SUN_POSITION, raster, res_satangle
-  e = Envi()
-  ; 读取影像采集时刻的GMT时间
-  acq_time = raster.Time
-  TimeStampToValues, acq_time.Acquisition, $
-    YEAR=yr, MONTH=mo, DAY=d, HOUR=hr, MINUTE=min, SECOND=sec, OFFSET=tz
-  hr -= tz ; 时区校正
-  gmt = 100d * hr + min + sec / 60.d
-  n_smp = n_elements(res_satangle.L1Sample)
-  sun_zenith = DblArr(n_smp)
-  sun_azimuth = Dblarr(n_smp)
-  For idx_smp = 0, n_smp - 1 Do Begin
-    lon = res_satangle.Lon[idx_smp]
-    lat = res_satangle.Lat[idx_smp]
-    ; 根据经纬度和成像时间, 计算太阳视位置, 以degree为单位
-    sun_pos = Envi_compute_sun_angles(d, mo, yr, gmt, lat, lon)
-    sun_zenith[idx_smp] = 90.d - sun_pos[0]
-    sun_azimuth[idx_smp] = sun_pos[1]
-  EndFor
-  res = { $
-    Lon: res_satangle.Lon, $
-    Lat: res_satangle.Lat, $
-    Zenith_Sun: sun_zenith, $
-    Azimuth_Sun: sun_azimuth $
-  }
-  Return, res
-End
