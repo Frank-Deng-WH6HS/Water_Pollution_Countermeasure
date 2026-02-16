@@ -20,23 +20,53 @@ Function AZIMUTH_STANDARDIZE, az
   EndElse
 End
 
+; 根据raster影像空间基准, 计算其四至点的投影坐标
+; Calculate projected coord. of extreme points of raster according to spatial
+;   references of imagery. 
+Function MIN_MAX_XY, raster
+  e = Envi()
+  ; 读取总行数, 总列数
+  n_rows = raster.NRows
+  n_columns = raster.NColumns
+  ; 获取影像左上, 右上, 左下, 右下 (包括data ignored区域) 顶点的图上坐标
+  verteces_cr = [];
+  Foreach r, Double([0.d, n_rows]) Do Begin
+    Foreach c, Double([0.d, n_columns]) Do Begin
+      verteces_cr = [[verteces_cr], [c, r]]
+    Endforeach
+  Endforeach
+  ; 将图上坐标转换为投影坐标
+  raster_cr2xy = Envitask("ConvertPixelToMapCoordinates")
+  raster_cr2xy.Spatial_Reference = raster.SpatialRef
+  raster_cr2xy.Input_Coordinate = verteces_cr
+  raster_cr2xy.Execute
+  verteces_xy = raster_cr2xy.Output_Coordinate
+  res = { $
+    XMin: Min(verteces_xy[0, *]), $
+    XMax: Max(verteces_xy[0, *]), $
+    YMin: Min(verteces_xy[1, *]), $
+    YMax: Max(verteces_xy[1, *]) $
+  }
+  Return, res
+End
+
 ; 根据raster影像成像时间和空间基准, 计算satangle采样点的投影坐标和观测几何
 ; Calculate projected coord. and obsv. geometries of each pixel according to
 ;   acquisition time and spatial references of imagery.
 Function SAMPLE_OBSV_GEOM, raster, satangle
   e = Envi()
   ; 计算L2影像在satangle文件中, 每个样本点的投影坐标(x, y), 用于后续的空间插值
-  raster_rc2xy = Envitask("ConvertPixelToMapCoordinates")
-  raster_rc2xy.Spatial_Reference = raster.SpatialRef
+  raster_cr2xy = Envitask("ConvertPixelToMapCoordinates")
+  raster_cr2xy.Spatial_Reference = raster.SpatialRef
   ; 注意: satangle文件中, L2Line和L2Sample取整数时表示像元中心点,
   ;   在EnviTask中转换为投影坐标前, 需要各减去0.5
-  raster_rc2xy.Input_Coordinate = Transpose( [ $
-    [satangle.L2Sample - 0.5], [satangle.L2Line - 0.5] $
+  raster_cr2xy.Input_Coordinate = Transpose( [ $
+    [satangle.L2Sample - 0.5d], [satangle.L2Line - 0.5d] $
     ] )
-  raster_rc2xy.Execute
-  l2_proj_x = raster_rc2xy.Output_Coordinate[0, *]
+  raster_cr2xy.Execute
+  l2_proj_x = raster_cr2xy.Output_Coordinate[0, *]
   l2_proj_x = l2_proj_x[*]
-  l2_proj_y = raster_rc2xy.Output_Coordinate[1, *]
+  l2_proj_y = raster_cr2xy.Output_Coordinate[1, *]
   l2_proj_y = l2_proj_y[*]
   ; 获取影像采集时刻的GMT时间
   acq_time = raster.Time
@@ -65,10 +95,10 @@ Function SAMPLE_OBSV_GEOM, raster, satangle
   res = { $
     L2X: l2_proj_x, $
     L2Y: l2_proj_y, $
-    Zenith_Sun: sun_zenith, $
-    Azimuth_Sun: sun_azimuth, $
-    Zenith_Satellite: view_zenith, $
-    Azimuth_Satellite: view_azimuth $
+    ZenithSun: sun_zenith, $
+    AzimuthSun: sun_azimuth, $
+    ZenithSatellite: view_zenith, $
+    AzimuthSatellite: view_azimuth $
   }
   Return, res
 End
