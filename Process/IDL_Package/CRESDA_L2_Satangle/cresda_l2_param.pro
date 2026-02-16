@@ -49,7 +49,7 @@ Pro CRESDA_L2_OBSV_GEOM, filename, output_path
   ;   因此既包含参考椭球信息 (始终为WGS-84), 又有投影变换信息 (始终
   ;   为特定分带的UTM投影)
   spat_ref = raster.SpatialRef
-  coord_sys_classic = Envi_proj_create( $
+  coord_sys_classic = Envi_Proj_Create( $
     PE_COORD_SYS_CODE=spat_ref.Coord_Sys_Code, $
     PE_COORD_SYS_STR=spat_ref.Coord_Sys_Str, $
     TYPE=42, /UTM $
@@ -114,8 +114,13 @@ Pro CRESDA_L2_OBSV_GEOM, filename, output_path
   res = Enviraster(data_stk, $
     URI=output_path.Replace('\', '/') + '/' + prod_base + "_obsv_geom.dat", $
     SPATIALREF=spat_ref, TIME=raster.Time, $
-    DATA_TYPE=4, DATA_IGNORE_VALUE=0.e $
-  )
-  res.Save
+    DATA_TYPE=4, INTERLEAVE='bsq', DATA_IGNORE_VALUE=0.e $
+  ) 
   raster.Close
+  res.Save
+  res.Metadata.UpdateItem, "band names", [ $
+    "Sun Zenith", "Sun Azimuth", $
+    "Satellite Zenith", "Satellite Azimuth" $    
+  ]
+  Delvar, data_stk
 End
