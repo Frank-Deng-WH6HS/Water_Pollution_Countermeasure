@@ -1,3 +1,8 @@
-/*
+﻿/*
 !DTM/
 !In-Situ_Monitoring/
+
+!Imagery
+/Imagery/**/*L2*.xml
+/Imagery/**/*L2*.tif
+/Imagery/**/*L2*.jpg

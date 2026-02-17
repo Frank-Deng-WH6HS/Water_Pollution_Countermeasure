@@ -1,12 +1,17 @@
+﻿# 手动复制并修改扩展名形成的备份文件
+*.bak 
 
-*.bak
+# Python解释器加载*.py代码时形成的二进制缓存文件
 *.pyc
 
-**/.ipynb_checkpoints/
+# Jupyter Notebook 的检查点目录, 用于在其中存储保存前的*.ipynb, 
+# 用于在笔记本文档编辑过程中回退至上次保存的版本, 
+# git版本管理过程中不需要
+**/.ipynb_checkpoints/ 
 
 Material/
 Output*/
-Templete/
 
+# Zotero_Record目录中, 只需要同步zotero.sqlite文件, 其他文件无需同步
 Zotero_Record/*/
 Zotero_Record/zotero.sqlite?*

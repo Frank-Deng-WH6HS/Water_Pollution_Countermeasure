@@ -1,0 +1,8 @@
+﻿
+/**/*.dat
+Atm_Corr/*/
+!Atm_Corr/*/._template.txt
+
+WQ_Spot_Data_Extraction/*.pdf
+
+
