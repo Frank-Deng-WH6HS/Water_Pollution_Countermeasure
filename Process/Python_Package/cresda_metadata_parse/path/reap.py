@@ -13,7 +13,7 @@ class RegexLexerConservingStata(lexer.ExtendedRegexLexer):
         super().__init__(); 
     
     #实例方法: 同时获取token的类型, 内容和状态
-    def get_tokens_and_states(self, text=None): 
+    def get_tokens_and_stata(self, text=None): 
         ctx = lexer.LexerContext(text, 0); 
         for pos, syn, txt in self.get_tokens_unprocessed(
             text=text, context=ctx
@@ -39,7 +39,7 @@ class SreCharSetLexer(RegexLexerConservingStata):
                 syntax_regex.Wildcard
             ), (r'(?<!\\)\.', #点
                 syntax_regex.Wildcard
-            ), (r".+?", 
+            ), (r".+?", #其他部分
                 syntax_regex.Other
             )
         ], 
@@ -50,7 +50,7 @@ class SreCharSetLexer(RegexLexerConservingStata):
                 syntax_regex.Escape
             ), (r'(?<!\\)\\[DSWdsw]', #通配符
                 syntax_regex.Wildcard
-            ), (r".+?", 
+            ), (r".+?", #其他部分
                 syntax_regex.Other
             )
         ], 
@@ -61,11 +61,13 @@ class SreCharSetLexer(RegexLexerConservingStata):
                 syntax_regex.Escape
             ), (r'(?<!\\)\\[DSWdsw]', #通配符
                 syntax_regex.Wildcard
-            ), (r".+?", 
+            ), (r".+?", #其他部分
                 syntax_regex.Other
             )
         ]
     }; 
+    
+#面向路径匹配任务的改版正则表达式
     
 class Reap(object): 
     
@@ -83,11 +85,11 @@ class Reap(object):
     #文件名中的非法字符: 
         #正斜杠 (Linux路径分隔符, Windows远程路径分隔符)
         #反斜杠 (DOS, Windows本地路径分隔符), 
-        #半角冒号 (DOS, Windows卷标, Mac早期版本路径分隔符)
+        #半角冒号 (DOS, Windows卷标)
         #半角星号, 问号 (Windows文件名通配符)
         #半角双引号 (Windows路径字符串定界符)
-        #小于号, 大于号 (Linux, Windows, Mac程序I/O流重定向输入, 重定向输出标识)
-        #管道符 (Linux, Windows, Mac程序I/O流管道连接标识)
+        #小于号, 大于号 (Linux, Windows程序I/O流重定向输入, 重定向输出标识)
+        #管道符 (Linux, Windows程序I/O流管道连接标识)
         #不同OS对非法字符的限制范围不同, 但为保证REAP匹配结果在不同平台的一致性, 
         #因此在任何OS下均考虑所有的非法字符
     CHAR_ILLEGAL = r"/\\\:\*\?\"\<\>\|"; 
@@ -95,21 +97,22 @@ class Reap(object):
     #优化规则
         #正斜杠 r"/" 匹配单个正斜杠或反斜杠
             #替换为 r"[/\\]"
-            #由于该语法专用于匹配路径分隔符, 因此不考虑其位于字符集或取反字符集的情况
         #r"\D", r"\W", r"\S"同时排除文件名不支持的字符
             #如 r"\W" 替换为 r"[^\w{char}]".format(char=CHAR_ILLEGAL)
-            #r"\D", r"\W", r"\S"位于字符集 r"[bar]" 时, 应将 r"[bar\W]" 
+            #r"\D", r"\W", r"\S"位于字符集 r"[bar]" 时, 应先将 r"[bar\W]" 
             #转换为 r"(?:[bar]|\W)", 之后继续替换r"\D", r"\W", r"\S"
-            #r"\D", r"\W", r"\S"位于取反字符集 r"[^bar]" 时, 不转换, 不替换, 
+            #r"\D", r"\W", r"\S"位于取反字符集 r"[^bar]" 时, 不作处理
             #因为非法字符均在r"\D", r"\W", r"\S"内
         #取反字符集同时排除文件名不支持的字符
-            #当左 r"[", 右方括号 r"]", 插入符 r"^" 表示其字面意义时, 无论是否放置在
-            #方括号内, 均必须用反斜杠转义
+            #当左方括号 r"[", 右方括号 r"]", 插入符 r"^" 表示其字面意义时, 
+            #无论是否放置在方括号内, 均必须用反斜杠转义
         #未转义的句点 r"." 排除文件名不支持的字符
             #替换为 r"[^{char}]".format(char=CHAR_ILLEGAL)
-            #句点表示其字面意义时, 无论是否放置在方括号内, 均必须用反斜杠转义
     
+    #词法分析器, 作为类的公共属性, 在类定义阶段即创建, 无需在每次构造实例时重新创建
     LEX = SreCharSetLexer(); 
+    
+    #部分字符的转换函数
     
     @classmethod
     def _left_bracket_caret_conv(cls, syn, txt, sta): 
@@ -137,7 +140,9 @@ class Reap(object):
     def _dot_conv(cls, syn, txt, sta): 
         txt_mod = r"[^{char}]".format(char=cls.CHAR_ILLEGAL); 
         return syn, txt_mod, sta; 
-
+    
+    #实例方法: 初始化, 对传入的正则表达式语法进行改造后, 构建REAP
+    
     def __init__(self, pattern): 
         p = self._to_reap_pattern(pattern); 
         self._regex = re.compile(p); 
@@ -148,7 +153,7 @@ class Reap(object):
     @classmethod
     def _to_reap_pattern(cls, pattern): 
         p = str(); 
-        token_gen = cls.LEX.get_tokens_and_states(pattern); 
+        token_gen = cls.LEX.get_tokens_and_stata(pattern); 
         for syn, txt, sta in token_gen: 
             #处理取反字符集
             if (syn, txt, sta) == (
@@ -164,11 +169,14 @@ class Reap(object):
                 while (syn, txt, sta) != (
                     cls.LEX.syntax_regex.Delimiter, "]", "charset_incl"
                 ): 
+                    #收集字符集内的三种通配符, 并将其从字符集方括号内移出
                     if re.match(r"\\[DSW]", txt): 
                         wildcards.append(txt); 
                     else: 
                         p += txt; 
                     syn, txt, sta = next(token_gen); 
+                #在字符集方括号以外, 重新添加前述过程收集的通配符
+                #如 r"[b\Sar\W]" 转换为 r"(?:[bar]|\S|\W)", 再将通配符替换为目标语法
                 for wildcard in wildcards: 
                     syn, wildcard, sta = cls._wildcard_conv(
                         syn, wildcard, sta
@@ -176,11 +184,15 @@ class Reap(object):
                     txt += "|"; 
                     txt += wildcard; 
                 txt += ")"
-            #处理斜杠
-            if (syn, txt, sta) == (cls.LEX.syntax_regex.Other, "/", "root"): 
+            #处理字符集外的斜杠
+            if (syn, txt, sta) == (
+                cls.LEX.syntax_regex.Other, "/", "root"
+            ): 
                 syn, txt, sta = cls._slash_conv(syn, txt, sta); 
             #处理字符集外的点
-            if (syn, txt, sta) == (cls.LEX.syntax_regex.Wildcard, ".", "root"): 
+            if (syn, txt, sta) == (
+                cls.LEX.syntax_regex.Wildcard, ".", "root"
+            ): 
                 syn, txt, sta = cls._dot_conv(syn, txt, sta); 
             #处理字符集外的三种通配符
             elif (syn, sta) == (cls.LEX.syntax_regex.Wildcard, "root"): 
