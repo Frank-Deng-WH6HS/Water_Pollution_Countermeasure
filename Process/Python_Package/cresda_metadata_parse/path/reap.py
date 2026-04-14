@@ -2,7 +2,6 @@
 #REAP, Regular Expression Adapted for Path matching
 
 import re; 
-import copy; 
 
 from pygments import lexer, token; 
 
@@ -27,8 +26,6 @@ class RegexLexerConservingStata(lexer.ExtendedRegexLexer):
 class SreCharSetLexer(RegexLexerConservingStata): 
     
     syntax_regex = token.String.Regex; 
-
-    syntax_regex.subtypes.clear(); 
     
     tokens = {
         "root": [
@@ -80,39 +77,124 @@ class Reap(object):
     
     REGEX_METHODS = set(
         attr for attr in re.compile(r"").__dir__() 
-        if not attr.startswith("__") and not attr.endswith("__")
+        if not attr.startswith("_")
     ); 
     
+    #文件名中的非法字符: 
+        #正斜杠 (Linux路径分隔符, Windows远程路径分隔符)
+        #反斜杠 (DOS, Windows本地路径分隔符), 
+        #半角冒号 (DOS, Windows卷标, Mac早期版本路径分隔符)
+        #半角星号, 问号 (Windows文件名通配符)
+        #半角双引号 (Windows路径字符串定界符)
+        #小于号, 大于号 (Linux, Windows, Mac程序I/O流重定向输入, 重定向输出标识)
+        #管道符 (Linux, Windows, Mac程序I/O流管道连接标识)
+        #不同OS对非法字符的限制范围不同, 但为保证REAP匹配结果在不同平台的一致性, 
+        #因此在任何OS下均考虑所有的非法字符
     CHAR_ILLEGAL = r"/\\\:\*\?\"\<\>\|"; 
     
     #优化规则
-        #正斜杠(/)匹配单个正斜杠或反斜杠
-        #\D, \W, \S同时排除文件名不支持的字符
+        #正斜杠 r"/" 匹配单个正斜杠或反斜杠
+            #替换为 r"[/\\]"
+            #由于该语法专用于匹配路径分隔符, 因此不考虑其位于字符集或取反字符集的情况
+        #r"\D", r"\W", r"\S"同时排除文件名不支持的字符
             #如 r"\W" 替换为 r"[^\w{char}]".format(char=CHAR_ILLEGAL)
-            #\D, \W, \S位于字符集 r"[bar]" 时, 应将 r"[bar\W]" 转换为 r"(?:[bar]|\W)"
-            #之后继续替换\D, \W, \S
-            #\D, \W, \S位于取反字符集 r"[^bar]" 时, 不转换, 不替换, 因为非法字符均在\W和\S内
+            #r"\D", r"\W", r"\S"位于字符集 r"[bar]" 时, 应将 r"[bar\W]" 
+            #转换为 r"(?:[bar]|\W)", 之后继续替换r"\D", r"\W", r"\S"
+            #r"\D", r"\W", r"\S"位于取反字符集 r"[^bar]" 时, 不转换, 不替换, 
+            #因为非法字符均在r"\D", r"\W", r"\S"内
         #取反字符集同时排除文件名不支持的字符
             #当左 r"[", 右方括号 r"]", 插入符 r"^" 表示其字面意义时, 无论是否放置在
             #方括号内, 均必须用反斜杠转义
-        #未转义的句点 r"." 只匹配文件名支持的合法字符
-            #替换为 r"[^\d{char}]".format(char=CHAR_ILLEGAL)
+        #未转义的句点 r"." 排除文件名不支持的字符
+            #替换为 r"[^{char}]".format(char=CHAR_ILLEGAL)
             #句点表示其字面意义时, 无论是否放置在方括号内, 均必须用反斜杠转义
     
+    LEX = SreCharSetLexer(); 
+    
+    @classmethod
+    def _left_bracket_caret_conv(cls, syn, txt, sta): 
+        txt_mod = r"[^{char}".format(char=cls.CHAR_ILLEGAL); 
+        return syn, txt_mod, sta; 
+    
+    @classmethod
+    def _left_bracket_conv(cls, syn, txt, sta): 
+        txt_mod = r"(?:["; 
+        return syn, txt_mod, sta; 
+    
+    @classmethod
+    def _wildcard_conv(cls, syn, txt, sta): 
+        txt_mod = r"[^{wild}{char}]".format(
+            wild=txt.lower(), char=cls.CHAR_ILLEGAL
+        ); 
+        return syn, txt_mod, sta; 
+    
+    @classmethod
+    def _slash_conv(cls, syn, txt, sta): 
+        txt_mod = r"[/\\]"; 
+        return syn, txt_mod, sta; 
+    
+    @classmethod
+    def _dot_conv(cls, syn, txt, sta): 
+        txt_mod = r"[^{char}]".format(char=cls.CHAR_ILLEGAL); 
+        return syn, txt_mod, sta; 
+
     def __init__(self, pattern): 
-        p = pattern; 
-        self._input_pattern = p; 
-        
-        pass; #需要引入pygments
-        
+        p = self._to_reap_pattern(pattern); 
         self._regex = re.compile(p); 
-        
+        self._input_pattern = pattern; 
+       
+    #正则表达式语法改造
+    
+    @classmethod
+    def _to_reap_pattern(cls, pattern): 
+        p = str(); 
+        token_gen = cls.LEX.get_tokens_and_states(pattern); 
+        for syn, txt, sta in token_gen: 
+            #处理取反字符集
+            if (syn, txt, sta) == (
+                cls.LEX.syntax_regex.Delimiter, "[^", "root"
+            ):
+                syn, txt, sta = cls._left_bracket_caret_conv(syn, txt, sta); 
+            #处理字符集内的三种通配符
+            if (syn, txt, sta) == (
+                cls.LEX.syntax_regex.Delimiter, "[", "root"
+            ): 
+                syn, txt, sta = cls._left_bracket_conv(syn, txt, sta); 
+                wildcards = list(); 
+                while (syn, txt, sta) != (
+                    cls.LEX.syntax_regex.Delimiter, "]", "charset_incl"
+                ): 
+                    if re.match(r"\\[DSW]", txt): 
+                        wildcards.append(txt); 
+                    else: 
+                        p += txt; 
+                    syn, txt, sta = next(token_gen); 
+                for wildcard in wildcards: 
+                    syn, wildcard, sta = cls._wildcard_conv(
+                        syn, wildcard, sta
+                    ); 
+                    txt += "|"; 
+                    txt += wildcard; 
+                txt += ")"
+            #处理斜杠
+            if (syn, txt, sta) == (cls.LEX.syntax_regex.Other, "/", "root"): 
+                syn, txt, sta = cls._slash_conv(syn, txt, sta); 
+            #处理字符集外的点
+            if (syn, txt, sta) == (cls.LEX.syntax_regex.Wildcard, ".", "root"): 
+                syn, txt, sta = cls._dot_conv(syn, txt, sta); 
+            #处理字符集外的三种通配符
+            elif (syn, sta) == (cls.LEX.syntax_regex.Wildcard, "root"): 
+                if re.match(r"\\[DSW]", txt): 
+                    syn, txt, sta = cls._wildcard_conv(syn, txt, sta); 
+            p += txt; 
+        return p; 
+         
     @property
     def input_pattern(self):
         return self._input_pattern; 
         
     def __repr__(self): 
-        return "{cls:s}({input:s}) -> {comp}".format(
+        return "{cls!s}({input!r}) -> {comp!r}".format(
             cls=self.__class__.__name__, 
             input=self._input_pattern, 
             comp=self._regex.pattern
