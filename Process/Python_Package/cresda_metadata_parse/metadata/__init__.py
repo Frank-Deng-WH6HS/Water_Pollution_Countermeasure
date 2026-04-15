@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 #CRESDA 卫星光学影像产品 元数据模型
 
 import re; 

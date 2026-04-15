@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 #面向路径匹配任务的改版正则表达式
 #REAP, Regular Expression Adapted for Path matching
 
@@ -10,7 +11,7 @@ from pygments import lexer, token;
 class RegexLexerConservingStata(lexer.ExtendedRegexLexer): 
     
     def __init__(self): 
-        super().__init__(); 
+        super(RegexLexerConservingStata, self).__init__(); 
     
     #实例方法: 同时获取token的类型, 内容和状态
     def get_tokens_and_stata(self, text=None): 
@@ -21,7 +22,8 @@ class RegexLexerConservingStata(lexer.ExtendedRegexLexer):
             states = ctx.stack[-1]
             yield syn, txt, states; 
 
-#Python正则表达式通配符和字符集语法分析器
+#Python内置正则表达式 (sr, Secret Labs' Regular Expression) 
+#通配符和字符集语法分析器
 
 class SreCharSetLexer(RegexLexerConservingStata): 
     
@@ -67,18 +69,19 @@ class SreCharSetLexer(RegexLexerConservingStata):
         ]
     }; 
     
-#面向路径匹配任务的改版正则表达式
+#面向路径匹配任务的 sr 正则表达式改编
     
 class Reap(object): 
     
-    #由python re.Pattern改造而得. 
-    #大部分语法与re.Pattern一致, 支持匹配结果编组引用, 位置匹配. 
-    #匹配结果编组引用功能, 可用于在替换操作中保留部分匹配结果. 
-    #位置匹配功能包括四种零宽断言. 
-    #通配符与glob差异较大, 与re.Pattern语法相近. 
+    #Reap 语法以 python 内置正则表达式 (sr) 语法为基础, 经改造而得, 
+        #用于简化文件路径匹配过程中的路径模式编写过程. 
+    #大部分语法与 sr 一致, 支持匹配结果编组引用, 位置匹配. 
+        #匹配结果编组引用功能, 可用于在替换操作中保留部分匹配结果. 
+        #位置匹配功能包括四种零宽断言. 
+        #通配符与glob差异较大, 与 sr 语法相近. 
     
     REGEX_METHODS = set(
-        attr for attr in re.compile(r"").__dir__() 
+        attr for attr in dir(re.compile(str())) 
         if not attr.startswith("_")
     ); 
     

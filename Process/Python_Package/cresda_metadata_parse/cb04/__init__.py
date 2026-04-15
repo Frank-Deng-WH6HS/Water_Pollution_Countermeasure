@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 #中巴地球资源卫星四号 (CBERS-04, CB04) 产品信息
 
 import re; 
