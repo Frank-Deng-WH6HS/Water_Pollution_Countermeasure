@@ -43,7 +43,7 @@ class FilenameMatcher(object):
         self.source_dir = os.getcwd(); 
         self.target_dir = os.getcwd(); 
         self.source_pattern = r"(.*)"; 
-        self.target_pattern = r"\g<1>"; 
+        self.target_patterns = (r"\g<1>", ); 
         
     #设置源文件的存放路径
     
@@ -88,17 +88,25 @@ class FilenameMatcher(object):
         p = r"\A{patt}\Z".format(patt=root + pattern)
         self._source_patt = Reap(p); 
     
-    #设置目标文件的路径模式
+    #设置目标文件的路径模式, 必须是list或tuple; 
+    #bytes将被解码为str, str将转换为一元tuple, 其他类型将报错. 
     #已知的问题: 此模式在用于替换的过程中, 可能将source_pattern匹配得到的编组复用, 
         #拼接, 构造得到包含 os.pardir 的路径, 实现文件遍历攻击. 
     #在实际的软件开发中, 不建议在source_pattern或target_pattern属性接收用户输入. 
     
     @property
-    def target_pattern(self): 
-        return self._target_patt;  
+    def target_patterns(self): 
+        return self._target_patt; 
     @source_pattern.setter
-    def target_pattern(self, pattern): 
-        self._target_patt = pattern; 
+    def target_patterns(self, pattern): 
+        p = pattern; 
+        if type(p) is bytes: 
+            p = p.decode(encoding="iso-8859-1"); 
+        if type(p) is str: 
+            p = (p, ); 
+        if type(p) not in {list, tuple}: 
+            raise typeError(type(p)); 
+        self._target_patt = p; 
         
 
     #在源文件所在目录下遍历符合条件的路径, 返回源文件路径, 目标文件路径和编组捕获结果
@@ -112,14 +120,17 @@ class FilenameMatcher(object):
             for item in items: 
                 path = os.path.join(node, item); 
                 match = self._source_patt.match(path); 
-                if match: 
-                    #匹配结果输出
-                    source = match.group(0); #源文件路径
-                    target = self._target_dir + self._source_patt.sub(
-                        self._target_patt, match.string
-                    ); #目标文件路径, 注意该路径对应的文件可能不存在
-                    rec = self.TraverseRecord(
-                        source=source, target=target, 
-                        groupdict=match.groupdict()
-                    ); 
-                    yield rec; 
+                if not match: 
+                    continue; 
+                #匹配结果输出
+                source = match.group(0); #源文件路径
+                target = tuple(
+                    self._target_dir + self._source_patt.sub(
+                        p, match.string
+                    ) for p in self._target_patt
+                ); #目标文件路径
+                groupdict = match.groupdict(); #编组捕获结果
+                rec = self.TraverseRecord(
+                    source=source, target=target, groupdict=groupdict
+                ); 
+                yield rec; 
