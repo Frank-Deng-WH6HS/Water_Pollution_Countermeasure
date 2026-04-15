@@ -3,6 +3,8 @@
 import os; 
 import re; 
 
+import collections as coll; 
+
 from .reap import Reap; 
 
 #基类: 文件名称匹配器
@@ -39,8 +41,8 @@ class FilenameMatcher(object):
         self._target_patt = None; 
         self.source_dir = os.getcwd(); 
         self.target_dir = os.getcwd(); 
-        self.source_pattern = r".*"; 
-        self.target_pattern = r".*"; 
+        self.source_pattern = r"(.*)"; 
+        self.target_pattern = r"\g<1>"; 
         
     #设置源文件的存放路径
     
@@ -50,7 +52,10 @@ class FilenameMatcher(object):
     @source_dir.setter
     def source_dir(self, path): 
         src = self._path_validated(path, mkdir=False); 
-        if src: self._source_dir = src; 
+        if src: 
+            self._source_dir = src; 
+        else: 
+            raise FileNotFoundError(path); 
 
     #设置目标文件的存放路径
 
@@ -60,7 +65,10 @@ class FilenameMatcher(object):
     @target_dir.setter
     def target_dir(self, path): 
         trg = self._path_validated(path, mkdir=True); 
-        if trg: self._target_dir = trg; 
+        if trg: 
+            self._target_dir = trg; 
+        else: 
+            raise FileNotFoundError(path); 
     
     #设置源文件的路径模式
     
@@ -80,19 +88,37 @@ class FilenameMatcher(object):
         self._source_patt = Reap(p); 
     
     #设置目标文件的路径模式
+    #已知的问题: 此模式在用于替换的过程中, 可能将source_pattern匹配得到的编组复用, 
+        #拼接, 构造得到包含 os.pardir 的路径, 实现文件遍历攻击. 
+    #在实际的软件开发中, 不建议在source_pattern或target_pattern属性接收用户输入. 
     
     @property
     def target_pattern(self): 
-        root = re.escape(self._target_dir); 
-        root = re.escape(root); 
-        p = self._target_patt.input_pattern; 
-        p = re.sub(r"\A\\A", str(), p); 
-        p = re.sub(r"\A{root}".format(root=root), str(), p); 
-        p = re.sub(r"\\Z\Z", str(), p); 
-        return p; 
+        return self._target_patt;  
     @source_pattern.setter
     def target_pattern(self, pattern): 
-        root = re.escape(self._target_dir); 
-        p = r"\A{patt}\Z".format(patt=root + pattern)
-        self._target_patt = Reap(p); 
+        self._target_patt = pattern; 
+        
 
+    #在源文件所在目录下遍历符合条件的路径, 返回源文件路径, 目标文件路径和编组捕获结果
+    
+    TRV_REC_FLD = ("source", "target", "groupdict"); 
+    TraverseRecord = coll.namedtuple("TraverseRecord", TRV_REC_FLD); 
+    
+    def traverse(self): 
+        for node, dirs, files in os.walk(self._source_dir): 
+            items = files; 
+            for item in items: 
+                path = os.path.join(node, item); 
+                match = self._source_patt.match(path); 
+                if match: 
+                    #匹配结果输出
+                    source = match.group(0); #源文件路径
+                    target = self._target_dir + self._source_patt.sub(
+                        self._target_patt, match.string
+                    ); #目标文件路径, 注意该路径对应的文件可能不存在
+                    rec = self.TraverseRecord(
+                        source=source, target=target, 
+                        groupdict=match.groupdict()
+                    ); 
+                    yield rec; 
