@@ -36,10 +36,11 @@ class FilenameMatcher(object):
             return str(); 
     
     def __init__(self): 
-        self._source_dir = None;  
-        self._target_dir = None;  
-        self._source_patt = None; 
-        self._target_patt = None; 
+        self._source_dir = str();  
+        self._target_dir = str();  
+        self._source_patt = str(); 
+        self._source_patt_reap = None; 
+        self._target_patt = (str(), ); 
         self.source_dir = os.getcwd(); 
         self.target_dir = os.getcwd(); 
         self.source_pattern = r"(.*)"; 
@@ -55,6 +56,9 @@ class FilenameMatcher(object):
         src = self._path_validated(path, mkdir=False); 
         if src: 
             self._source_dir = src; 
+            #成功更新self._source_dir之后还需同步重新构建正则表达式
+            #确保后续调用实例的遍历方法self.traverse时, 模式能正确在新路径下匹配
+            self.source_pattern = self._source_patt; 
         else: 
             raise FileNotFoundError(path); 
 
@@ -75,18 +79,14 @@ class FilenameMatcher(object):
     
     @property
     def source_pattern(self): 
-        root = re.escape(self._source_dir); 
-        root = re.escape(root); 
-        p = self._source_patt.input_pattern; 
-        p = re.sub(r"\A\\A", str(), p); 
-        p = re.sub(r"\A{root}".format(root=root), str(), p); 
-        p = re.sub(r"\\Z\Z", str(), p); 
+        p = self._source_patt; 
         return p; 
     @source_pattern.setter
     def source_pattern(self, pattern): 
         root = re.escape(self._source_dir); 
-        p = r"\A{patt}\Z".format(patt=root + pattern)
-        self._source_patt = Reap(p); 
+        p = r"\A{patt}\Z".format(patt=root + pattern); 
+        self._source_patt_reap = Reap(p); 
+        self._source_patt = pattern; 
     
     #设置目标文件的路径模式, 必须是list或tuple; 
     #bytes将被解码为str, str将转换为一元tuple, 其他类型将报错. 
@@ -97,7 +97,7 @@ class FilenameMatcher(object):
     @property
     def target_patterns(self): 
         return self._target_patt; 
-    @source_pattern.setter
+    @target_patterns.setter
     def target_patterns(self, pattern): 
         p = pattern; 
         if type(p) is bytes: 
@@ -106,26 +106,25 @@ class FilenameMatcher(object):
             p = (p, ); 
         if type(p) not in {list, tuple}: 
             raise typeError(type(p)); 
-        self._target_patt = p; 
-        
+        self._target_patt = p;  
 
     #在源文件所在目录下遍历符合条件的路径, 返回源文件路径, 目标文件路径和编组捕获结果
     
     TRV_REC_FLD = ("source", "target", "groupdict"); 
-    TraverseRecord = coll.namedtuple("TraverseRecord", TRV_REC_FLD); 
+    TraverseRecord = coll.namedtuple("_", TRV_REC_FLD); 
     
     def traverse(self): 
         for node, dirs, files in os.walk(self._source_dir): 
             items = files; 
             for item in items: 
                 path = os.path.join(node, item); 
-                match = self._source_patt.match(path); 
+                match = self._source_patt_reap.match(path); 
                 if not match: 
                     continue; 
                 #匹配结果输出
                 source = match.group(0); #源文件路径
                 target = tuple(
-                    self._target_dir + self._source_patt.sub(
+                    self._target_dir + self._source_patt_reap.sub(
                         p, match.string
                     ) for p in self._target_patt
                 ); #目标文件路径
