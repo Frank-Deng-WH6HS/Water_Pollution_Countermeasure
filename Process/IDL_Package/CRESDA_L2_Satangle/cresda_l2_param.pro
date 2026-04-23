@@ -26,13 +26,22 @@ End
 ; 根据影像的元数据文件名主名, 构建观测几何样本的空间插值数据
 ; Construct spatial interpolation data of obsv. geometries
 ;   according to base name of metadata file of imagery.
-Pro CRESDA_L2_OBSV_GEOM, filename, output_path
+Pro CRESDA_L2_OBSV_GEOM, filename, output_dir, $
+  COMPRESSION=compression, NO_OPEN=no_open
+  ; 关键字参数取值初始化
+  If Not Keyword_Set(COMPRESSION) Then compression = 0
+  If Not Keyword_set(NO_OPEN) Then no_open = 0
   e = Envi()
   ; 影像, 元数据和satangle文件的存放路径
   prod_path = File_dirname(filename)
   prod_path = prod_path.Replace('\', '/')
   ; 影像的主名
   prod_base = File_basename(filename, '.xml')
+  ; 输出结果的路径
+  output_path = output_dir.Replace('\', '/') + $
+    '/' + prod_base + "_obsv_geom.dat"
+  output_hdr = output_dir.Replace('\', '/') + $
+    '/' + prod_base + "_obsv_geom.hdr"
   ; 在ENVI会话中加载影像, 此操作依赖第三方控件"中国卫星支持工具"
   raster = EnviOpenChinaRaster(filename.Replace('\', '/'))
   ; 读取总行数, 总列数
@@ -58,34 +67,6 @@ Pro CRESDA_L2_OBSV_GEOM, filename, output_path
   ; 计算采样点的投影坐标和观测几何
   smp_obsv_geom = SAMPLE_OBSV_GEOM(raster, satangle)
   ; 在RAM新建影像, 用于临时存放空间插值结果
-  ; 太阳天顶角
-  Envi_doit, "Envi_Grid_Doit", $
-    ; 输入数据配置
-    X_PTS=smp_obsv_geom.L2X, Y_PTS=smp_obsv_geom.L2Y, $
-    Z_PTS=smp_obsv_geom.ZenithSun, I_PROJ=coord_sys_classic, $
-    ; 输出数据空间特征配置
-    O_PROJ=coord_sys_classic, PIXEL_SIZE=px_size, $
-    XMIN=xy_corner.XMin, XMAX=xy_corner.XMax, $
-    YMIN=xy_corner.YMin, YMAX=xy_corner.YMax, $
-    ; 输出数据属性特征配置
-    INTERP=0, OUT_DT=4, $
-    ; 输出数据文件参数配置
-    /IN_MEMORY, R_FID=fid_sun_z
-  sun_z = Envifidtoraster(fid_sun_z)
-  data_stk = sun_z.GetData()
-  sun_z.Close
-  ; 太阳方位角
-  Envi_doit, "Envi_Grid_Doit", $
-    X_PTS=smp_obsv_geom.L2X, Y_PTS=smp_obsv_geom.L2Y, $
-    Z_PTS=smp_obsv_geom.AzimuthSun, I_PROJ=coord_sys_classic, $
-    O_PROJ=coord_sys_classic, PIXEL_SIZE=px_size, $
-    XMIN=xy_corner.XMin, XMAX=xy_corner.XMax, $
-    YMIN=xy_corner.YMin, YMAX=xy_corner.YMax, $
-    INTERP=0, OUT_DT=4, $
-    /IN_MEMORY, R_FID=fid_sun_a
-  sun_a = Envifidtoraster(fid_sun_a)
-  data_stk = [[[data_stk]], [[sun_a.GetData()]]]
-  sun_a.Close
   ; 卫星天顶角
   Envi_doit, "Envi_Grid_Doit", $
     X_PTS=smp_obsv_geom.L2X, Y_PTS=smp_obsv_geom.L2Y, $
@@ -96,7 +77,7 @@ Pro CRESDA_L2_OBSV_GEOM, filename, output_path
     INTERP=0, OUT_DT=4, $
     /IN_MEMORY, R_FID=fid_sat_z
   sat_z = Envifidtoraster(fid_sat_z)
-  data_stk = [[[data_stk]], [[sat_z.GetData()]]]
+  data_stk = sat_z.GetData()
   sat_z.Close
   ; 卫星方位角
   Envi_doit, "Envi_Grid_Doit", $
@@ -111,16 +92,37 @@ Pro CRESDA_L2_OBSV_GEOM, filename, output_path
   data_stk = [[[data_stk]], [[sat_a.GetData()]]]
   sat_a.Close
   ; 插值结果叠加
-  res = Enviraster(data_stk, $
-    URI=output_path.Replace('\', '/') + '/' + prod_base + "_obsv_geom.dat", $
-    SPATIALREF=spat_ref, TIME=raster.Time, $
-    DATA_TYPE=4, INTERLEAVE='bsq', DATA_IGNORE_VALUE=0.e $
-  ) 
-  raster.Close
-  res.Save
-  res.Metadata.UpdateItem, "band names", [ $
-    "Sun Zenith", "Sun Azimuth", $
-    "Satellite Zenith", "Satellite Azimuth" $    
-  ]
+  Envi_write_envi_file, data_stk, $
+    OUT_NAME=output_path, $
+    OUT_DT=4, INTERLEAVE=0, BYTE_ORDER=0, $
+    COMPRESSION=compression, $
+    R_FID=res_fid
   Delvar, data_stk
+  res = EnviFidToRaster(res_fid)
+  ; 向输出结果写入部分元数据
+  res_meta = EnviTask("SetRasterMetadata")
+  res_meta.input_raster = res
+  res_meta.band_names = [ $
+    "Satellite Zenith", "Satellite Azimuth" $
+  ] 
+  res_meta.spatialref = raster.spatialref
+  res_meta.interleave = 'bsq'
+  res_meta.data_ignore_value = 0.e
+  res_meta.nrows = n_rows
+  res_meta.ncolumns = n_columns
+  res_meta.nbands = 2
+  res_meta.data_type = 'Float'
+  res_meta.byte_order = 'Host (Intel)'
+  res_meta.execute
+  raster.Close
+  ; 如果文件采用压缩方式保存, 需要单独在元数据文件末尾追加压缩标记
+  If compression Then Begin
+    Openu, lun_hdr, output_hdr, /APPEND, /GET_LUN
+    Printf, lun_hdr, "file compression = 1"
+    Close, lun_hdr
+  EndIf
+  ; 输出的文件默认会重新打开, 但如果指定/NO_OPEN, 则不会重新打开
+  If Not no_open Then Begin
+    res = e.OpenRaster(output_hdr)
+  EndIf
 End

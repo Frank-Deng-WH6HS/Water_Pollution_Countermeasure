@@ -68,35 +68,12 @@ Function SAMPLE_OBSV_GEOM, raster, satangle
   l2_proj_x = l2_proj_x[*]
   l2_proj_y = raster_cr2xy.Output_Coordinate[1, *]
   l2_proj_y = l2_proj_y[*]
-  ; 获取影像采集时刻的GMT时间
-  acq_time = raster.Time
-  TimeStampToValues, acq_time.Acquisition, $
-    YEAR=yr, MONTH=mo, DAY=d, HOUR=hr, MINUTE=min, SECOND=sec, OFFSET=tz
-  hr -= tz ; 时区校正
-  gmt = 100d * hr + min + sec / 60.d
-  ; 根据satangle中提供的经纬度和raster的成像时间, 计算太阳视位置, 以degree为单位
-  ; ENVI内置的Envi_Compute_Sun_Angles只接受十进制度格式的经纬度,
-  ;   因此直接使用satangle.Lon和satangle.Lat, 不通过投影逆变换求解
-  n_smp = N_elements(satangle.L1Sample)
-  sun_zenith = Dblarr(n_smp)
-  sun_azimuth = Dblarr(n_smp)
-  For idx_smp = 0, n_smp - 1 Do Begin
-    lon = satangle.Lon[idx_smp]
-    lat = satangle.Lat[idx_smp]
-    sun_pos = Envi_compute_sun_angles(d, mo, yr, gmt, lat, lon)
-    ; Envi_Compute_Sun_Angles所得数组中, 位次为0的元素是太阳高度角, 需要转化为天顶角
-    sun_zenith[idx_smp] = 90.d - sun_pos[0]
-    sun_azimuth[idx_smp] = sun_pos[1]
-  Endfor
   ; 方位角标准化
-  sun_azimuth = AZIMUTH_STANDARDIZE(sun_azimuth)
   view_zenith = satangle.Zenith
   view_azimuth = AZIMUTH_STANDARDIZE(satangle.Azimuth)
   res = { $
     L2X: l2_proj_x, $
     L2Y: l2_proj_y, $
-    ZenithSun: sun_zenith, $
-    AzimuthSun: sun_azimuth, $
     ZenithSatellite: view_zenith, $
     AzimuthSatellite: view_azimuth $
   }
