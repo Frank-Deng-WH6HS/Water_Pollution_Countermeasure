@@ -11,7 +11,7 @@ from pygments import lexer, token;
 class RegexLexerConservingStata(lexer.ExtendedRegexLexer): 
     
     def __init__(self): 
-        super(type(self).__mro__[1], ).__init__(); 
+        super(type(self).__mro__[1], self).__init__(); 
     
     #实例方法: 同时获取token的类型, 内容和状态
     def get_tokens_and_stata(self, text=None): 

@@ -14,3 +14,5 @@ from .utils import importlib, isidentifier as _isidentifier;
 for _satellite in _satellites: 
     if _isidentifier(_satellite): 
         importlib.import_module("." + _satellite, package=__name__); 
+
+from . import metadata; 

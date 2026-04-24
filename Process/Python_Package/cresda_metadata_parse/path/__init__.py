@@ -105,7 +105,7 @@ class FilenameMatcher(object):
         if type(p) is str: 
             p = (p, ); 
         if type(p) not in {list, tuple}: 
-            raise typeError(type(p)); 
+            raise TypeError(type(p)); 
         self._target_patt = p;  
 
     #在源文件所在目录下遍历符合条件的路径, 返回源文件路径, 目标文件路径和编组捕获结果

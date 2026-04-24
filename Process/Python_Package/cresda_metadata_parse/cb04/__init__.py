@@ -12,9 +12,9 @@ class MUX(path.FilenameMatcher, aux.OpticalL2):
     SRC_ARX_BASENAME = \
         r"(?P<archive>" \
             "CB04\-MUX(?:\-[0-9]+){2}\-[0-9]{8}" \
-            "\-L20*(?P<prod>[1-9][0-9]{,10})" \
-        ")/";  
-    SRC_ARX_PREFIX = SRC_ARX_BASENAME + r"(?P=prod)/(?P=archive)\.TIF"; 
+            "\-L20*(?P<prod>[1-9][0-9]{,9})" \
+        ")";  
+    SRC_ARX_PREFIX = SRC_ARX_BASENAME + r"/(?P=prod)/(?P=archive)\.TIF"; 
     TRG_ARX_BASENAME = r"\g<archive>/\g<prod>/"; 
     TRG_MATADATA_SUFFIX = r"\g<archive>.XML"; 
     
@@ -25,3 +25,8 @@ class MUX(path.FilenameMatcher, aux.OpticalL2):
             self.TRG_ARX_BASENAME + self.TRG_MATADATA_SUFFIX, 
             self.TRG_ARX_BASENAME + self.VIEW_GEOM
         ); 
+
+    def reset(self): 
+        self.__init__(); 
+        
+    
