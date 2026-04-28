@@ -1,0 +1,21 @@
+ENVI
+description = {
+ Calibrated Radiance from CB04-MUX-371-75-20241012-L20005228726.TIF}
+samples = 7153
+lines   = 6567
+bands   = 4
+data type = 4
+interleave = bip
+file type = ENVI Standard
+header offset = 0
+byte order = 0
+map info = {UTM, 1.000, 1.000, 721149.988, 2545469.017, 2.000000e+001, 2.000000e+001, 49, North, WGS-84, units=Meters}
+coordinate system string = {PROJCS["WGS_1984_UTM_Zone_49N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",111.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]}
+wavelength = {
+ 0.485000, 0.555000, 0.660000, 0.830000}
+fwhm = {
+ 0.070000, 0.070000, 0.060000, 0.120000}
+wavelength units = Micrometers
+data ignore value = 0.00000000e+000
+calibration scale factor = 0.100000
+data units = W m^-2 sr^-1 um^-1
