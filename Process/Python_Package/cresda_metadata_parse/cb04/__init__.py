@@ -30,3 +30,26 @@ class MUX(path.FilenameMatcher, aux.OpticalL2):
         self.__init__(); 
         
     
+#10米多光谱相机 (P10)
+class P10(path.FilenameMatcher, aux.OpticalL2): 
+    
+    SRC_ARX_BASENAME = \
+        r"(?P<archive>" \
+            "CB04\-P10(?:\-[0-9]+){2}\-[A-Z][0-9]\-[0-9]{8}" \
+            "\-L20*(?P<prod>[1-9][0-9]{,9})" \
+        ")";  
+    SRC_ARX_PREFIX = SRC_ARX_BASENAME + r"/(?P=prod)/(?P=archive)\.TIF"; 
+    TRG_ARX_BASENAME = r"\g<archive>/\g<prod>/"; 
+    TRG_MATADATA_SUFFIX = r"\g<archive>.XML"; 
+    
+    def __init__(self): 
+        super(type(self).__mro__[0], self).__init__(); 
+        self.source_pattern = self.SRC_ARX_PREFIX; 
+        self.target_patterns = (
+            self.TRG_ARX_BASENAME + self.TRG_MATADATA_SUFFIX, 
+            self.TRG_ARX_BASENAME + self.VIEW_GEOM
+        ); 
+
+    def reset(self): 
+        self.__init__();       
+    
