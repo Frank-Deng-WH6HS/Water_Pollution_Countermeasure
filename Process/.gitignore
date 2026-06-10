@@ -6,8 +6,12 @@
 *.sbx
 # ArcGIS Shapefile 矢量数据的特殊缓存文件, 用途未知
 *.qtr
+# ArcGIS 栅格数据金字塔文件
+*.ovr
 # DBase 字符编码配置文件, git版本管理过程中不需要
 *.cpg
+# ArcGIS Python 工具箱的元数据文件
+*.pyt.xml
 # ArcGIS Shapefile 编辑过程中, 由应用程序设置的编辑跟踪数据文件
 *.lock 
 # ArcGIS File Geodatabase目录
