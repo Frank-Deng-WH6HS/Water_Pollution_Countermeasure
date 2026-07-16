@@ -8,7 +8,7 @@
 ; 注意: 如果同一个NetCDF在同一IDL会话中关闭后重新打开, 
 ;   即使内容无改动, 其文件号和各编组识别码将发生变化
 ; 
-Function NCDF_GRPS_LOC, cdfid
+Function NCDF_GRPS_ID, cdfid
   node = cdfid
   node_map = Hash()
   leaves = [node]
@@ -35,10 +35,10 @@ End
 ; 获取NetCDF特定编组中每个数据集的路径和对应的识别码, 
 ;   但不包括其各级子编组中的数据集 (不递归)
 ; 输入: 当前IDL会话中, 处于打开状态的NetCDF编组的识别码
-; 输出: 键值对, 键的内容是每个数据集的完整相对路径,
+; 输出: 键值对, 键的内容是每个数据集的名称,
 ;   对应的值是该数据集在当前IDL会话的识别码
 ; 
-Function NCDF_VARS_LOC, grpid
+Function NCDF_VARS_ID, grpid
   grp_path = Ncdf_FullGroupName(grpid)
   node_map = Hash()
   nodes = Ncdf_VarIdsInq(grpid)
@@ -49,7 +49,7 @@ Function NCDF_VARS_LOC, grpid
     node_info = Ncdf_VarInq(grpid, node)
     node_name = node_info.name
     node_path = StrJoin( $
-      [grp_path, node_name], "/" $
+      [node_name], "/" $
     )
     node_map[node_path] = node
   EndForEach
@@ -60,10 +60,10 @@ End
 ;   但不包括其各级子编组 (及其数据集) 中的属性 (不递归)
 ; 输入: 当前IDL会话中, 处于打开状态的NetCDF编组的识别码, 
 ;   数据集的识别码 (可选参数, 无默认值)
-; 输出: 键值对, 键的内容是每个属性的完整相对路径,
+; 输出: 键值对, 键的内容是每个属性的名称,
 ;   对应的值是该属性在当前IDL会话的识别码
 ; 
-Function NCDF_ATTS_LOC, grpid, varid
+Function NCDF_ATTS_ID, grpid, varid
   grp_path = Ncdf_fullgroupname(grpid)
   node_map = Hash()
   If N_Params() Eq 1 Then Begin
@@ -74,7 +74,7 @@ Function NCDF_ATTS_LOC, grpid, varid
       att_name = Ncdf_Attname(grpid, idx_att, /GLOBAL)
       If grp_path Eq "/" Then grp_path = ""
       att_path = Strjoin( $
-        [grp_path, att_name], "/" $
+        [att_name], "/" $
         )
       node_map[att_path] = idx_att
     EndFor
@@ -86,10 +86,10 @@ Function NCDF_ATTS_LOC, grpid, varid
     For idx_att = 0, n_att - 1 Do Begin
       att_name = Ncdf_Attname(grpid, varid, idx_att)
       att_path = Strjoin( $
-        [grp_path, var_name, att_name], "/" $
+        [att_name], "/" $
         )
       node_map[att_path] = idx_att
-    Endfor
+    EndFor
   EndElse
   Return, node_map
 End
