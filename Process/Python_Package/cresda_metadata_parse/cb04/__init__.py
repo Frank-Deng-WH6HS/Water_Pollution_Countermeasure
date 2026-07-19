@@ -4,10 +4,10 @@
 import re; 
 
 from .. import auxiliary as aux; 
-from .. import path; 
+import path_matcher; 
 
 #20米多光谱相机 (MUX)
-class MUX(path.FilenameMatcher, aux.OpticalL2): 
+class MUX(path_matcher.FilenameMatcher, aux.OpticalL2): 
     
     SRC_ARX_BASENAME = \
         r"(?P<archive>" \
@@ -31,7 +31,7 @@ class MUX(path.FilenameMatcher, aux.OpticalL2):
         
     
 #10米多光谱相机 (P10)
-class P10(path.FilenameMatcher, aux.OpticalL2): 
+class P10(path_matcher.FilenameMatcher, aux.OpticalL2): 
     
     SRC_ARX_BASENAME = \
         r"(?P<archive>" \
