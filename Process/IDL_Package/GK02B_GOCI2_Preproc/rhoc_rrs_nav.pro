@@ -56,7 +56,7 @@ Function LOAD_FD_L2_AC_GEOPHY, cdfid, RHOC=rhoc, RRS=rrs
   arr_refl = FltArr( $
     atts_dim.NColumns, atts_dim.NRows, atts_dim.NBands, $
     /NOZERO $
-  )
+    )
   att_refl_band_wl_name = "radiation_wavelength"
   band_names = vars_refl_name.Sort()
   band_names = band_names.ToArray()
@@ -87,16 +87,16 @@ End
 ; 输出: RhoC影像EnviRaster接口对象
 ; 
 Function LOAD_FD_L2_AC_RHOC, cdfid
-  raster = LOAD_FD_L2_AC_GEOPHY(cdfid. /RHOC)
+  raster = LOAD_FD_L2_AC_GEOPHY(cdfid, /RHOC)
   Return, raster
 End
 
 ; 读取NetCDF中的Rrs影像
 ; 输入: 当前IDL会话中, 处于打开状态的NetCDF文件号
 ; 输出: Rrs影像EnviRaster接口对象
-;
+; 
 Function LOAD_FD_L2_AC_RRS, cdfid
-  raster = LOAD_FD_L2_AC_GEOPHY(cdfid. /RRS)
+  raster = LOAD_FD_L2_AC_GEOPHY(cdfid, /RRS)
   Return, raster
 End
 
