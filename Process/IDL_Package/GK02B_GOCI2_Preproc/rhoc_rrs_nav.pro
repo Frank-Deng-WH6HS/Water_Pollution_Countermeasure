@@ -105,7 +105,7 @@ End
 ; 输出: 经纬度影像EnviRaster接口对象, 可在Envi会话中操作. 
 ;   影像每个像元的两通道取值, 分别为反射率影像对应位置像元的
 ;   经, 纬度, 单位为decimal degree, 空间基准为 WGS-84
-;   可用于 Georeference from IGM
+;   可用于 Build GLT 或者 Georeference from GLT/IGM
 ; 
 Function LOAD_FD_L2_AC_NAV, cdfid
   e = Envi()
