@@ -30,7 +30,7 @@ End
 ;     Rrs是在RhoC基础上除去气溶胶影响, 并进行角度归一化所得物理量, 
 ;     单位为 per steradian, 排除陆地, 云覆盖区域或极高浊度水域. 
 ;   每次调用本函数时, 关键字 /RHOC 和 /RRS 有且只有一个被指定
-;     当 /RHOC 和 /RRS 同时启用时, 只读取RhoC, 此时 /RRS 无效; 
+;     当 /RHOC 和 /RRS 同时启用时, 程序读取失败并报错; 
 ;     当 /RHOC 和 /RRS 均未启用时, 程序读取失败并报错. 
 ; 输出: 反射率影像EnviRaster接口对象, 可在Envi会话中操作. 
 ;   影像波段按照波长 (单位: nm) 升序排列. 
@@ -40,14 +40,12 @@ Function LOAD_FD_L2_AC_GEOPHY, cdfid, RHOC=rhoc, RRS=rrs
   e = Envi()
   grps_path_id = NCDF_GRPS_ID(cdfid)
   grp_refl_name = "/geophysical_data"
-  Case 1 Of 
-    Keyword_Set(RHOC): Begin
-      If rhoc Then grp_refl_name += "/RhoC"
-    End
-    Keyword_Set(RRS): Begin
-      If Rrs Then grp_refl_name += "/Rrs"
-    End
-  EndCase
+  If Keyword_Set(RHOC) Then Begin
+    If rhoc Then grp_refl_name += "/RhoC"
+  EndIf
+  If Keyword_Set(RRS) Then Begin
+    If Rrs Then grp_refl_name += "/Rrs"
+  EndIf
   grp_refl_id = grps_path_id[grp_refl_name]
   vars_refl_id = NCDF_VARS_ID(grp_refl_id)
   vars_refl_name = vars_refl_id.keys()
