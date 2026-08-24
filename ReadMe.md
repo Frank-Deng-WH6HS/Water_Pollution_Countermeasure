@@ -148,7 +148,13 @@ conda install scikit-learn==0.17.1 scikit-image==0.12.3 pillow==3.3.1 networkx==
 conda install notebook==4.2.3 ipykernel==4.5.0 ipython_genutils==0.1.0 jinja2==2.8 jupyter_client==4.4.0 jupyter_core==4.2.0 nbconvert==4.2.0 nbformat==4.1.0 pygments==2.1.3 pyzmq==15.4.0 tornado==4.4.1 -c conda-forge -y
 ```
 
-5. 在环境`idlpy_x64`下建立`idlpy`的路径配置文件. \
+5. 在环境`idlpy_x64`中配置与任务管理有关的包. \
+    Configure packages related to task management in environment `idlpy_x64`. 
+```bash
+conda install psutil==4.3.1 -c conda-forge -y
+```
+
+6. 在环境`idlpy_x64`下建立`idlpy`的路径配置文件. \
     Create path configuration file of `idlpy` in environment `idlpy_x64`. 
 
 ```bash
@@ -157,7 +163,7 @@ echo %idl%\bin\bin.x86-64 >IDL8.5.pth
 echo %idl%\lib\bridges >>IDL8.5.pth
 ```
 
-6. 将环境`idlpy_x64`注册为`ipython`内核, 以便与`base`环境下的`Jupyter notebook`一同使用. \
+7. 将环境`idlpy_x64`注册为`ipython`内核, 以便与`base`环境下的`Jupyter notebook`一同使用. \
     Register environment `idlpy_x64` as an `ipython` kernel for use with `Jupyter notebook` in `base` environment. 
 
 ```bash
@@ -165,7 +171,7 @@ conda install backports.functools_lru_cache -c conda-forge -y
 python -m ipykernel install --name idlpy_x64 --display-name "Python 2 (idlpy)"
 ```
 
-7. 完成环境`idlpy_x64`配置. \
+8. 完成环境`idlpy_x64`配置. \
     Finish configuration of environment `idlpy_x64`. 
 
 ```bash
@@ -239,3 +245,28 @@ python -m ipykernel install --name Sklearn_Torch_x64 --display-name "Python 3 (s
 ```bash
 conda deactivate
 ```
+
+## 在同一笔记本文档中同时使用两个环境的内核 / Use Kernels in Both Environments in the Same Jupyter Notebook Simultaneously 
+
+笔记本文档的默认`kernel`建议使用`Sklearn_Torch_x64`的`python`解释器, 并利用环境中的`jupyter_client`模块运行独立的, `idlpy_x64`环境中的内核. \
+It is recommended to use interpreter in `Sklearn_Torch_x64` as the default kernel for notebook document, then use module `jupyter_client` in current environment to launch an independent kernel located in `idlpy_x64`.  
+
+在笔记本文档中初始化子内核的方式: \
+Approach to initialize child kernel in notebook document: 
+
+```python
+import jupyter_client; 
+#初始化内核管理器
+krnl_mgr_idlpy = jupyter_client.KernelManager(); 
+#确定子内核所在的环境
+krnl_spec_idlpy = jupyter_client.kernelspec.get_kernel_spec("idlpy_x64"); 
+#获取并应用子内核环境配置
+krnl_mgr_idlpy.kernel_spec._trait_values = krnl_spec_idlpy._trait_values; 
+#启动子内核
+krnl_mgr_idlpy.start_kernel(); 
+#调用内核的交互接口对象
+krnl_cl_idlpy = krnl_mgr_idlpy.client(); 
+```
+
+两个内核 (`python`解释器) 是父进程与子进程的关系, 分别使用所在环境中的程序包, 二者的变量一般情况下互不影响. \
+Relationship between two kernels (`python` interpreters) are parent process and child process, which use packages in corresponding environments respectively. In general, variables in both kernels do not affect each other. 
