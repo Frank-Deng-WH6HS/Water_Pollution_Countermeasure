@@ -5,7 +5,7 @@ import io, sys, os;
 
 import enum; 
 
-from . import idlpy; 
+from .. import idlpy; 
 
 class IdlSession(object): 
     
