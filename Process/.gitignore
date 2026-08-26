@@ -18,6 +18,7 @@
 **/*.gdb/ 
 
 !Python_Package/
+Python_Package/**/*.ipynb
 
 !IDL_Package/
 
