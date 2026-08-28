@@ -1,5 +1,19 @@
 ; NetCDF 读取工具
 
+; 验证NetCDF文件是否有效
+; 输入: NetCDF文件的路径, 允许符号连接
+; 输出: 布尔值, 当文件有效时为真, 否则为假
+Function NCDF_VALIDATE, filename
+  Catch, err
+  If err Ne 0 Then Begin
+    Catch, /CANCEL
+    Return, !False
+  EndIf
+  cdfid = NCdf_Open(filename)
+  NCdf_Close, cdfid
+  Return, !True
+End
+
 ; 递归地获取当前打开的NetCDF的每个编组的路径和对应的识别码
 ; 输入: 当前IDL会话中, 处于打开状态的NetCDF文件号
 ; 输出: 键值对, 键的内容是每个编组的完整相对路径, 
