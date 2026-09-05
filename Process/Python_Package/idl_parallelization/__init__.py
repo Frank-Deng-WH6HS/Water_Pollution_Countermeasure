@@ -9,3 +9,4 @@ sys.stdout = _;
 
 from .utils import importlib, isidentifier as _isidentifier; 
 from .kernel import IdlHost, IdlBridge; 
+IdlHost(); 

@@ -6,6 +6,7 @@ import io, sys, os;
 import enum; 
 
 from .. import idlpy; 
+from .. import utils; 
 
 class IdlSession(object): 
     
@@ -19,17 +20,32 @@ class IdlSession(object):
         IDL_PARENT = 0; 
         IDL_CHILD = 1; 
         
-    #枚举IDL_IDLBridge状态   
-        
-    class Status(enum.Enum): 
-
-        IDLE = 0; 
-        EXECUTING = 1; 
-        COMPLETED = 2; 
-        ERROR = 3; 
-        ABORTED = 4; 
-    
     IDL_HOST = idlpy.IDL; 
+    
+    #主要的异常 
+    #派生类可继承, 并用于 raise 语句, 增强代码可读性和复用性
+    
+    @staticmethod
+    def ERROR_INVALID_SESSION(interp=None): 
+        return RuntimeError(
+            "{interp!s} is not a valid IDL session".format(
+                interp=interp
+            )
+        ); 
+    
+    @staticmethod
+    def ERROR_INVALID_IDENTIFIER(name=str()):
+        return NameError(
+            "Name '{name}' is not a valid identifier".format(
+                name=name
+            )
+        ); 
+    
+    @staticmethod
+    def ERROR_INEXISTENT_FILE(): 
+        return IOError(
+            "The system cannot find the file specified. "
+        ); 
     
     #属性get: IDL会话解释器
     
@@ -42,6 +58,12 @@ class IdlSession(object):
     @property
     def mode(self): 
         return self._interp_mode; 
+    
+    #属性get: IDL会话变量接口
+    
+    @property
+    def variable(self): 
+        return self._var; 
     
     #实例方法: 解析文件路径的绝对路径形式, 移除os.curdir和os.pardir. 
     #当路径是相对于IDL会话工作目录的相对路径时, 解析为从根目录出发的
@@ -70,7 +92,23 @@ class IdlSession(object):
                 ".compile -v \x22{path!s}\x22".format(path=path_esc)
             ); 
         else: 
-            raise IOError("The system cannot find the file specified. "); 
+            raise self.ERROR_INEXISTENT_FILE(); 
+            
+    #实例方法: 删除特定变量
+    
+    def delvar(self, name): 
+        if utils.isidentifier(name): 
+            self.execute(
+                "delvar, {name}".format(name=name)
+            ); 
+        else: 
+            raise self.ERROR_INVALID_IDENTIFIER(name=name); 
+    
+    
+    #实例方法: 重置IDL会话, 清理其中的所有变量
+    
+    def reset(self): 
+        self.execute(".reset_session"); 
         
     #静态方法: 获取指定的动态链接库 (DLL) 名, 函数名, 用于调用"获取当前
     #    进程PID"函数
@@ -92,20 +130,47 @@ class IdlSession(object):
         else: 
             raise OSError("Unsupported Operating System"); 
         return dll_name, func_name; 
+
+class IdlVariableFetcher(object): 
     
+    def __init__(self, session): 
+        self._session = session; 
+    
+    def __getitem__(self, name): 
+        return self._session.getvar(name); 
+        
+    
+    def __setitem__(self, name, value): 
+        self._session.setvar(name, value); 
+    
+@utils.singleton
 class IdlHost(IdlSession): 
     
-    def __init__(self, interp): 
+    def __init__(self, interp=idlpy.IDL): 
         if interp is self.IDL_HOST: 
             self._interp = interp; 
             self._interp_mode = self.Mode.IDL_PARENT; 
+            self._var = IdlVariableFetcher(self); 
         else: 
-            raise RuntimeError(
-                "{interp!s} is not a valid IDL session".format(
-                    interp=interp
-                )
-            ); 
+            raise self.ERROR_INVALID_SESSION(interp=interp); 
+            
+    #实例方法: 获取当前IDL会话中特定变量的值
     
+    def getvar(self, name): 
+        if utils.isidentifier(name): 
+            val = getattr(self.interpreter, name); 
+            return val; 
+        else: 
+            raise self.ERROR_INVALID_IDENTIFIER(name=name); 
+    
+    #实例方法: 修改当前IDL会话中特定变量的值
+    
+    def setvar(self, name, value): 
+        if utils.isidentifier(name): 
+            setattr(self.interpreter, name, value); 
+        else: 
+            raise self.ERROR_INVALID_IDENTIFIER(name=name); 
+            
     #实例方法: 在当前IDL会话执行任意IDL语句
     #生产环境中调用此方法时, 需防范命令注入攻击
     
@@ -125,7 +190,7 @@ class IdlHost(IdlSession):
         if os.path.isdir(self.abspath(path)): 
             self.interpreter.cd(path); 
         else: 
-            raise IOError("The system cannot find the file specified. "); 
+            raise self.ERROR_INEXISTENT_FILE(); 
             
     #实例方法: 获取当前IDL会话的进程PID
     
@@ -134,19 +199,44 @@ class IdlHost(IdlSession):
         pid = self.interpreter.call_external(dll_name, func_name); 
         return pid; 
     
+    
 class IdlBridge(IdlSession): 
+        
+    #枚举IDL_IDLBridge状态   
+        
+    class Status(enum.Enum): 
+
+        IDLE = 0; 
+        EXECUTING = 1; 
+        COMPLETED = 2; 
+        ERROR = 3; 
+        ABORTED = 4; 
     
     def __init__(self, interp): 
         if self.IDL_HOST.isa(interp, "IDL_IDLBridge"): 
             self._interp = interp; 
             self._interp_mode = self.Mode.IDL_CHILD; 
+            self._var = IdlVariableFetcher(self); 
         else: 
-            raise RuntimeError(
-                "{interp!s} is not a valid IDL_IDLBridge".format(
-                    interp=interp
-                )
-            ); 
-          
+            raise self.ERROR_INVALID_SESSION(interp=interp); 
+
+    #实例方法: 获取当前IDL会话中特定变量的值
+    
+    def getvar(self, name): 
+        if utils.isidentifier(name): 
+            val = self.interpreter.getvar(name); 
+            return val; 
+        else: 
+            raise self.ERROR_INVALID_IDENTIFIER(name=name); 
+    
+    #实例方法: 修改当前IDL会话中特定变量的值
+    
+    def setvar(self, name, value): 
+        if utils.isidentifier(name): 
+            self.interpreter.setvar(name, value); 
+        else: 
+            raise self.ERROR_INVALID_IDENTIFIER(name=name); 
+              
     #实例方法: 在当前IDL会话执行任意IDL语句
     #生产环境中调用此方法时, 需防范命令注入攻击
         
@@ -165,27 +255,27 @@ class IdlBridge(IdlSession):
     
     def getcwd(self): 
         self.execute("file_expand_path = file_expand_path('')"); 
-        dir_ = self.interpreter.getvar("file_expand_path"); 
+        dir_ = self.variable["file_expand_path"]; 
         return dir_; 
     
     #实例方法: 修改当前IDL会话的工作目录
 
     def chdir(self, path): 
         if os.path.isdir(self.abspath(path)): 
-            self.interpreter.setvar("cd", path); 
+            self.variable["cd"] = path; 
             self.execute("cd, cd"); 
         else: 
-            raise IOError("The system cannot find the file specified. "); 
+            raise self.ERROR_INEXISTENT_FILE; 
     
     #实例方法: 获取当前IDL会话的进程PID
     
     def getpid(self): 
         dll_name, func_name = self._lib_getpid(); 
-        self.interpreter.setvar("make_dll", dll_name); 
-        self.interpreter.setvar("call_external", func_name); 
+        self.variable["make_dll"] = dll_name; 
+        self.variable["call_external"] = func_name; 
         self.execute(
             "call_external = call_external(make_dll, call_external)"
         ); 
-        pid = self.interpreter.getvar("call_external"); 
+        pid = self.variable["call_external"]; 
         return pid; 
     
