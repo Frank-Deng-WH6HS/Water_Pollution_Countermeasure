@@ -3,23 +3,17 @@
 
 import io, sys, os; 
 
+_ = sys.stdout; 
+with io.BytesIO() as sys.stdout: import idlpy; 
+sys.stdout = _; 
+
 import enum; 
 
-from .. import idlpy; 
+from .. import np; 
 from .. import utils; 
 
 class IdlSession(object): 
     
-    #判断当前IDL会话的解释器是idlpy接口会话, 还是IDL_IDLBridge子会话. 
-    #idlpy启动的IDL会话与调用该模块的python解释器属于同一进程; 
-    #idlpy的IDL会话中构建的IDL_IDLBridge对象, 控制的IDL子会话使用
-    #    独立的进程. 
-    
-    class Mode(enum.Enum): 
-    
-        IDL_PARENT = 0; 
-        IDL_CHILD = 1; 
-        
     IDL_HOST = idlpy.IDL; 
     
     #主要的异常 
@@ -53,12 +47,6 @@ class IdlSession(object):
     def interpreter(self): 
         return self._interp; 
     
-    #属性get: IDL会话类型
-    
-    @property
-    def mode(self): 
-        return self._interp_mode; 
-    
     #属性get: IDL会话变量接口
     
     @property
@@ -67,9 +55,9 @@ class IdlSession(object):
     
     #实例方法: 解析文件路径的绝对路径形式, 移除os.curdir和os.pardir. 
     #当路径是相对于IDL会话工作目录的相对路径时, 解析为从根目录出发的
-    #    绝对路径, 因为IDL会话和python解释器的工作目录设置相互独立, 
+    #   绝对路径, 因为IDL会话和python解释器的工作目录设置相互独立, 
     #如果不解析为绝对路径, 则os.isfile, os.isdir等函数的执行结果
-    #    将出现错误
+    #   将出现错误
        
     def abspath(self, path): 
         pwd = self.getcwd(); 
@@ -83,7 +71,7 @@ class IdlSession(object):
         return abs_path; 
     
     #实例方法: 指挥IDL解释器加载特定源代码文件中的所有过程和函数, 
-    #    但不运行任何过程或函数. 
+    #   但不运行任何过程或函数. 
     
     def compile(self, path): 
         if os.path.isfile(self.abspath(path)): 
@@ -104,14 +92,13 @@ class IdlSession(object):
         else: 
             raise self.ERROR_INVALID_IDENTIFIER(name=name); 
     
-    
     #实例方法: 重置IDL会话, 清理其中的所有变量
     
     def reset(self): 
         self.execute(".reset_session"); 
         
     #静态方法: 获取指定的动态链接库 (DLL) 名, 函数名, 用于调用"获取当前
-    #    进程PID"函数
+    #   进程PID"函数
     
     @staticmethod
     def _lib_getpid(): 
@@ -130,7 +117,7 @@ class IdlSession(object):
         else: 
             raise OSError("Unsupported Operating System"); 
         return dll_name, func_name; 
-
+    
 class IdlVariableFetcher(object): 
     
     def __init__(self, session): 
@@ -139,9 +126,11 @@ class IdlVariableFetcher(object):
     def __getitem__(self, name): 
         return self._session.getvar(name); 
         
-    
     def __setitem__(self, name, value): 
         self._session.setvar(name, value); 
+        
+    def __delitem__(self, name): 
+        self._session.delvar(name); 
     
 @utils.singleton
 class IdlHost(IdlSession): 
@@ -149,21 +138,20 @@ class IdlHost(IdlSession):
     def __init__(self, interp=idlpy.IDL): 
         if interp is self.IDL_HOST: 
             self._interp = interp; 
-            self._interp_mode = self.Mode.IDL_PARENT; 
             self._var = IdlVariableFetcher(self); 
         else: 
             raise self.ERROR_INVALID_SESSION(interp=interp); 
             
-    #实例方法: 获取当前IDL会话中特定变量的值
+    #实例方法: 获取当前IDL会话的 $MAIN$ 上下文中特定变量的值
     
     def getvar(self, name): 
         if utils.isidentifier(name): 
-            val = getattr(self.interpreter, name); 
+            val = self.interpreter.scope_varfetch(name, level=1); 
             return val; 
         else: 
             raise self.ERROR_INVALID_IDENTIFIER(name=name); 
     
-    #实例方法: 修改当前IDL会话中特定变量的值
+    #实例方法: 修改当前IDL会话的 $MAIN$ 上下文中特定变量的值
     
     def setvar(self, name, value): 
         if utils.isidentifier(name): 
@@ -199,6 +187,23 @@ class IdlHost(IdlSession):
         pid = self.interpreter.call_external(dll_name, func_name); 
         return pid; 
     
+    #实例方法: 获取当前IDL会话中, 直接创立的所有IDL_IDLBridge对象, 
+    #  无论是否有IDL变量正在引用它们, 无论它们的进程是否仍然存活. 
+    
+    def children(self): 
+        self.execute(
+            "obj_valid = obj_valid(obj_valid(), /get_heap_identifier)"
+        ); 
+        obj_ids = self.variable["obj_valid"]; 
+        ibs = list(); 
+        for obj_id in obj_ids: 
+            self.variable["obj_valid"] = obj_id; 
+            self.execute("obj_valid = obj_valid(obj_valid, /cast)"); 
+            obj = self.variable["obj_valid"]; 
+            if self.IDL_HOST.isa(obj, "IDL_IDLBridge"): 
+                ibs.append(obj); 
+        del self.variable["obj_valid"]; 
+        return ibs; 
     
 class IdlBridge(IdlSession): 
         
@@ -215,12 +220,11 @@ class IdlBridge(IdlSession):
     def __init__(self, interp): 
         if self.IDL_HOST.isa(interp, "IDL_IDLBridge"): 
             self._interp = interp; 
-            self._interp_mode = self.Mode.IDL_CHILD; 
             self._var = IdlVariableFetcher(self); 
         else: 
             raise self.ERROR_INVALID_SESSION(interp=interp); 
 
-    #实例方法: 获取当前IDL会话中特定变量的值
+    #实例方法: 获取当前IDL会话的 $MAIN$ 上下文中特定变量的值
     
     def getvar(self, name): 
         if utils.isidentifier(name): 
@@ -229,7 +233,7 @@ class IdlBridge(IdlSession):
         else: 
             raise self.ERROR_INVALID_IDENTIFIER(name=name); 
     
-    #实例方法: 修改当前IDL会话中特定变量的值
+    #实例方法: 修改当前IDL会话的 $MAIN$ 上下文中特定变量的值
     
     def setvar(self, name, value): 
         if utils.isidentifier(name): 
@@ -244,7 +248,7 @@ class IdlBridge(IdlSession):
         result = self.interpreter.execute(command, nowait=nowait); 
         return result; 
     
-    #实例方法: 获取当前IDL_IDLBridgeIDL会话的状态
+    #实例方法: 获取当前IDL_IDLBridge的IDL会话的状态
     
     def status(self): 
         num = self.interpreter.status(); 
@@ -256,6 +260,7 @@ class IdlBridge(IdlSession):
     def getcwd(self): 
         self.execute("file_expand_path = file_expand_path('')"); 
         dir_ = self.variable["file_expand_path"]; 
+        del self.variable["file_expand_path"]; 
         return dir_; 
     
     #实例方法: 修改当前IDL会话的工作目录
@@ -264,6 +269,7 @@ class IdlBridge(IdlSession):
         if os.path.isdir(self.abspath(path)): 
             self.variable["cd"] = path; 
             self.execute("cd, cd"); 
+            del self.variable["cd"]; 
         else: 
             raise self.ERROR_INEXISTENT_FILE; 
     
@@ -277,5 +283,7 @@ class IdlBridge(IdlSession):
             "call_external = call_external(make_dll, call_external)"
         ); 
         pid = self.variable["call_external"]; 
+        del self.variable["make_dll"]; 
+        del self.variable["call_external"]; 
         return pid; 
     

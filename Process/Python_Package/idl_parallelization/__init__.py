@@ -3,10 +3,8 @@
 
 import io, sys, os; 
 
-_ = sys.stdout; 
-with io.BytesIO() as sys.stdout: import idlpy; 
-sys.stdout = _; 
+import numpy as np; 
 
 from .utils import importlib, isidentifier as _isidentifier; 
-from .kernel import IdlHost, IdlBridge; 
+from .kernel import idlpy, IdlHost, IdlBridge; 
 IdlHost(); 
