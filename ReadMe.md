@@ -32,13 +32,23 @@
 
 ### 系统和程序包配置 / Configuration of System and Packages
 
+> [!NOTE]
+> 计算硬件正在升级. 数据迁移至新硬件后, 将重新在新硬件建立`conda`环境. 
+> 
+> Hardware for computation is upgrading, `conda` environments will be rebuilt after data are migrated to new hardware. 
+> 
+> 环境重建手段预计发生重大变更, 因`conda-forge`已将部分旧程序包移除. 
+> 
+> Approaches for environments reconstruction will encounter a massive change due to removal of some old packages in `conda-forge`. 
+> 
+
 |项目<br>Item|值<br>Value|
 |:-:|:-|
-|CPU架构<br>Architecture of CPU|x86-64|
-|GPU架构<br>Architecture of GPU|Nvidia Fermi|
-|GPU CUDA计算容量<br>CUDA Compute Campacity of GPU|2.1|
-|操作系统内核<br>OS kernel version|Windows NT 6.1.7601|
-|`CUDA`版本<br>`CUDA` version|8.0|
+|CPU架构<br>Architecture of CPU|x86-64 Intel Comet Lake|
+|GPU架构<br>Architecture of GPU|Nvidia Turing|
+|GPU CUDA计算容量<br>CUDA Compute Campacity of GPU|7.5|
+|操作系统内核<br>OS kernel version|Windows NT 10.0.17763|
+|`CUDA`版本<br>`CUDA` version|10.2, 11.8|
 |`Conda`管理器版本<br>`Conda` package manager version|`conda 4.7.12` (`python 3.7.4`, `requests 2.22.0`)|
 |`Anaconda`发行版<br>`Anaconda` system release version|`anaconda 2019.10`|
 |`ArcGIS`发行版<br>`ArcGIS` release version|`ArcGIS Desktop 10.5`|
@@ -46,8 +56,8 @@
 
 ### 环境的主要用途 / Usage of Environments
 
-本项目通过`anaconda`环境管理器, 创建两个环境, 分别名为`idlpy_x64`和`Sklearn_Torch_x64`. 其中`idlpy_x64`集成`idlpy`, `Sklearn_Torch_x64`集成`sklearn`和`torch`的CPU版本 (未适配`CUDA`), 主要依据如下: \
-This repository uses `anaconda` environment manager to create two environments named `idlpy_x64` and `Sklearn_Torch_x64` respectively, where `idlpy_x64` intergrates `idlpy`, meanwhile `Sklearn_Torch_x64` integrates `sklearn` and "CPU-only" version `pytorch` which is not compatible with `CUDA`. Criteria are as follow: 
+本项目通过`anaconda`环境管理器, 创建两个环境, 分别名为`idlpy_x64`和`Sklearn_Torch_x64`. 其中`idlpy_x64`集成`idlpy`, `Sklearn_Torch_x64`集成`sklearn`和`pytorch`, 主要依据如下: \
+This repository uses `anaconda` environment manager to create two environments named `idlpy_x64` and `Sklearn_Torch_x64` respectively, where `idlpy_x64` intergrates `idlpy`, meanwhile `Sklearn_Torch_x64` integrates `sklearn` and `pytorch`. Criteria are as follow: 
 
 * 遥感影像的覆盖范围内水体应当包含实测数据. \
     Waters covered by extent of RS images must contain *in-situ* monitoring data. 
@@ -63,14 +73,7 @@ This repository uses `anaconda` environment manager to create two environments n
         `idlpy` provided by `ENVI 5.3` / `IDL 8.5` can be invoked by `python 2.7` and `python 3.4` intepreters. 
     * 可在Windows系统运行的**所有**`pytorch`版本 (0.4版或更高版本), 均不支持上述解释器. \
         **ALL** `pytorch` version supported by Windows platform (version 0.4 or later) fail to be invoked by intepreters above. 
-* 硬件条件限制. \
-    Restrictions due to hardware conditions. 
-    * `pytorch`的部分GPU版本在CU80下编译, 但编译的程序中部分指令未包含在2.1版的指令集内. \
-        Certain GPU-supported versions of `pytorch` were compiled based on CUDA 8.0, however, several instructions in compiled programs were not included in the instruction sets of GPU architectures whose computation capacity are 2.1. 
-    * `pytorch` 1.x及更高版本中, 除一个特定的1.0.0编译后版本兼容CC 2.0以外, 其他版本兼容的最低CC均在3.0以上; \
-        Except for one specific 1.0.0 compiled version supporting computation capacity of 2.0, for **ALL** releases of `pytorch` w/ version 1.x and later, the minimum CC required is 3.0 or higher.
-    * `pytorch`社区自0.3版本起, 其兼容性维护的重心就已不再向CC低于3.x的GPU倾斜. \ 
-        Since the release of version 0.3, the forum of `pytorch` has shifted its focus of compatibility maintenance away from GPUs with CC versions lower than 3.x. 
+
 
 > [!IMPORTANT]
 >
